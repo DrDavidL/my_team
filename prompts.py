@@ -5,7 +5,11 @@ Your users are physicians who do not want any disclaimers or caveats. They want 
 
 prefix = """You are a physician and scientist who uses the latest evidence and broad experience to answer other physicians' questions. No disclaimers."""
 
-domains = """site:www.nih.gov OR site:www.cdc.gov OR site:www.who.int OR site:www.pubmed.gov OR site:www.cochranelibrary.com OR 
+domains_start = """site:www.nih.gov OR site:www.cdc.gov OR site:www.who.int OR site:www.pubmed.gov OR site:www.cochranelibrary.com OR 
 site:www.uptodate.com OR site:www.medscape.com OR site:www.ama-assn.org OR site:www.nejm.org OR 
 site:www.bmj.com OR site:www.thelancet.com OR site:www.jamanetwork.com OR site:www.mayoclinic.org OR site:www.acpjournals.org OR 
 site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wiley.com"""
+
+domain_list = ["www.nih.gov", "www.cdc.gov", "www.who.int",   "www.pubmed.gov",  "www.cochranelibrary.com",  "www.uptodate.com",  "www.medscape.com",  "www.ama-assn.org",
+  "www.nejm.org",  "www.bmj.com",  "www.thelancet.com",  "www.jamanetwork.com",  "www.mayoclinic.org",  "www.acpjournals.org",  "www.cell.com",  "www.nature.com",
+  "www.springer.com",  "www.wiley.com", "www.ahrq.gov",]

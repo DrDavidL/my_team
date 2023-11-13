@@ -22,7 +22,24 @@ from bs4 import BeautifulSoup
 
 client = OpenAI()
 
-from bs4 import BeautifulSoup   
+def extract_domains(domains):
+    """
+    Function to extract domain names from a string.
+    
+    Parameters:
+    domains (str): The string containing the domain names.
+
+    Returns:
+    list: A list of domain names.
+    """
+    # Split the string into individual sites
+    sites = domains.split(' OR ')
+
+    # Extract the domain name from each site
+    domain_names = [site.replace('site:', '') for site in sites]
+
+    return domain_names
+
 
 def websearch_snippets(web_query, max):
     web_query = domains + " " + web_query
@@ -247,7 +264,7 @@ def browserless(url_list, max):
         response = requests.post(api_url, headers=headers, json=payload)
         # response = requests.post(url, json=payload, headers=headers)
         if response.status_code != 200:
-            st.write(f'The site failed to release all content: {response.status_code}')
+            st.write(f'One of the sites failed to release all content: {response.status_code}')
             # st.write(f'Response text: {response.text}')
             # st.write(f'Response headers: {response.headers}')
         try:
@@ -429,6 +446,7 @@ st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':s
 st.title("My AI Team")
 with st.expander("Please read before using"):
     st.write("This app is a demonstration of consensus approaches to answering clinical questions using AI. It is not intended for clinical use.")
+    st.write("Author: David Liebovitz, MD")
 
 
 
@@ -437,32 +455,45 @@ if check_password():
 
 
 
-    st.session_state['user_question'] = st.text_input("Enter your question here:", st.session_state['user_question'])
+    st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
 
-    use_internet = st.checkbox("Include web search results?")
+    use_internet = st.checkbox("Give the AI access to web content? By default reliable domains are searched; you may modify the list.")
     if use_internet:
-        search_method = st.radio("Web search method:", ("RAG (Retrieval-Augmented Generation) leveraging up to 10 fulltext results", "Web snippets for up to 10 fast results"))
+        search_method = st.radio("Web search method:", ("Faster: Web snippets from up to 10 different sites", "Slower: RAG (Retrieval-Augmented Generation) leveraging the fulltext from up to 5 different sites"))
 
-        if search_method == "RAG (Retrieval-Augmented Generation) leveraging up to 10 fulltext results":
+        if search_method == "Slower: RAG (Retrieval-Augmented Generation) leveraging the fulltext from up to 5 different sites":
             use_retrieval = "RAG"
-            max = 10
-        if search_method == "Web snippets for up to 10 fast results":
+            max = 5
+        if search_method == "Faster: Web snippets from up to 10 different sites":
             use_retrieval = "snippets"
             max = 10
-        with st.expander("Domains used with web search:"):
-            st.write(domains)
+        add_domains = st.checkbox("Add additional domains to search?")
+        if add_domains:
+            domain_to_add = st.text_input("Enter additional domains to search here (e.g. www.cdc.gov OR www.nih.gov):",)
+            if st.button("Add domain"):
+                domain_list.insert(0, domain_to_add)
+        with st.expander("Domains Emphasized in Search:", expanded=True):
+            domains_only = st.multiselect("View domains emphasized in search (or remove)", domain_list, default=domain_list)
+        domains = ' OR '.join(['site:' + domain for domain in domains_only])
+        # st.write(domains)
+        
+        # with st.expander("Domains used with web search:"):
+            
+        #     for site in domain_list:
+        #         st.write(site)
+
         # max = 4
         # if use_rag:
         #     max = 9
         
-    st.write("Please select the models you would like to use to answer your question. The first two models will be used to generate answers, and the third model will be used to reconcile the two answers and any web search results.")
-
+    st.info("Please select the models you would like to use to answer your question. The first two models will be used to generate answers, and the third model will be used to reconcile the two answers and any web search results.")
+    st.warning("Please note this is a demo of late-breaking methods and there may be errors. Validate all answers independently before *thinking* of leveraging answers beyond just AI exploration.")
     col1, col2 = st.columns(2)
 
     with col1:
-        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=1)
-        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=1)
-        model3 = st.selectbox("Mode 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=1)
+        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=1)
+        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=5)
+        model3 = st.selectbox("Mode 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=3)
 
     # model1 = "gpt-3.5-turbo"
     # model2 = "gpt-3.5-turbo-16k"
@@ -473,9 +504,9 @@ if check_password():
 
     if begin:
 
-        """
-        Main function to execute API calls concurrently.
-        """
+        # """
+        # Main function to execute API calls concurrently.
+        # """
         # Define the arguments for each function call
         args1 = (prefix, '', '', st.session_state.user_question, 0.4, '', model1, False)
         args2 = (prefix, '', '', st.session_state.user_question, 0.4, '', model2, False)
@@ -490,27 +521,39 @@ if check_password():
      
 
         
-                
+            with st.spinner('Waiting for models to respond...'):    
             
-
-            model1_response = future1.result()
-            time1 = datetime.datetime.now()  # capture current time when process 1 finishes
-            model2_response = future2.result()
-            time2 = datetime.datetime.now()  # capture current time when process 2 finishes
-            if use_internet:
-                web_response, urls = future3.result()
-                time3 = datetime.datetime.now()  # capture current time when process 3 finishes
+                try:
+                    model1_response = future1.result()
+                    time1 = datetime.datetime.now()  # capture current time when process 1 finishes
+                except:
+                    st.error("Model 1 failed to respond; consider changing.")
+                    model1_response = "Model 1 failed to respond."
+                
+                try:
+                    model2_response = future2.result()
+                    time2 = datetime.datetime.now()  # capture current time when process 2 finishes
+                except:
+                    st.error("Model 2 failed to respond; consider changing.")
+                    model2_response = "Model 2 failed to respond."
+                if use_internet:
+                    try:
+                        web_response, urls = future3.result()
+                        time3 = datetime.datetime.now()  # capture current time when process 3 finishes
+                    except:
+                        st.error("Web search failed to respond; try again or uncheck internet searching.")
+                        web_response = "Web search failed to respond."
         
         with col2:
-            with st.expander(f'Model 1, {model1} Response (completed at {time1})'):
+            with st.expander(f'Model 1, {model1} Response'):
                 st.write(model1_response)
 
-            with st.expander(f"Model 2, {model2} Response (completed at {time2})"):
+            with st.expander(f"Model 2, {model2} Response"):
                 st.write(model2_response)
                 
             if use_internet:
                 if use_retrieval == "snippets":
-                    with st.expander(f"Web Search Response (completed at {time3})"):
+                    with st.expander(f"Web Search {use_retrieval}:"):
                         for snip in web_response:
                             st.markdown(snip)
 
