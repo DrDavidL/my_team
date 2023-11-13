@@ -22,6 +22,7 @@ from bs4 import BeautifulSoup
 
 client = OpenAI()
 
+@st.cache_data
 def extract_domains(domains):
     """
     Function to extract domain names from a string.
@@ -41,6 +42,7 @@ def extract_domains(domains):
     return domain_names
 
 
+@st.cache_data
 def websearch_snippets(web_query, max):
     web_query = domains + " " + web_query
     api_url = "https://real-time-web-search.p.rapidapi.com/search"
@@ -64,6 +66,7 @@ def websearch_snippets(web_query, max):
     
     return all_snippets, urls
 
+@st.cache_data
 def join_and_clean_snippets(snippets, separator=' <END OF SITE> '):
     """
     Function to join snippets of HTML content from multiple sites into a single string, and then clean and split the joined HTML.
@@ -84,7 +87,7 @@ def join_and_clean_snippets(snippets, separator=' <END OF SITE> '):
 
     return paragraphs
 
-
+@st.cache_data
 def clean_and_split_html(full_html, separator=' <END OF SITE> '):
     """
     Function to remove HTML tags from a string and split the cleaned text into paragraphs.
@@ -125,7 +128,7 @@ def clean_and_split_html(full_html, separator=' <END OF SITE> '):
 
     return all_paragraphs
 
-
+@st.cache_resource
 def set_llm_chat(model, temperature):
     if model == "openai/gpt-3.5-turbo":
         model = "gpt-3.5-turbo"
@@ -283,6 +286,7 @@ def browserless(url_list, max):
     # st.write(f'Here is the lmited text: {limited_text}')
     return full_response
 
+@st.cache_data
 def limit_tokens(text, max_tokens=10000):
     tokens = text.split()  # split the text into tokens (words)
     limited_tokens = tokens[:max_tokens]  # keep the first max_tokens tokens
@@ -348,6 +352,7 @@ def scrapeninja(url_list, max):
     # Join all the scraped text into a single string
     # return full_response
 
+@st.cache_data
 def reconcile(question, old, new, web_content):
     # Send a message to the model asking it to summarize the text
     response = client.chat.completions.create(
@@ -441,6 +446,24 @@ def check_password():
 if 'user_question' not in st.session_state:
     st.session_state['user_question'] = ''
     
+if 'model1_response' not in st.session_state:
+    st.session_state['model1_response'] = ''
+    
+if 'model2_response' not in st.session_state:
+    st.session_state['model2_response'] = ''
+    
+if 'final_response' not in st.session_state:
+    st.session_state['final_response'] = ''
+    
+if 'web_response' not in st.session_state:
+    st.session_state['web_response'] = []
+    
+if 'ebm' not in st.session_state:
+    st.session_state.ebm = ''
+    
+if 'thread' not in st.session_state:
+    st.session_state.thread =[]
+    
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 st.title("My AI Team")
@@ -525,6 +548,7 @@ if check_password():
             
                 try:
                     model1_response = future1.result()
+                    st.session_state.model1_response = f'{model1} response:\n\n{model1_response}'
                     time1 = datetime.datetime.now()  # capture current time when process 1 finishes
                 except:
                     st.error("Model 1 failed to respond; consider changing.")
@@ -532,6 +556,7 @@ if check_password():
                 
                 try:
                     model2_response = future2.result()
+                    st.session_state.model2_response = f'{model2} response:\n\n{model2_response}'
                     time2 = datetime.datetime.now()  # capture current time when process 2 finishes
                 except:
                     st.error("Model 2 failed to respond; consider changing.")
@@ -539,41 +564,83 @@ if check_password():
                 if use_internet:
                     try:
                         web_response, urls = future3.result()
+                        st.session_state.web_response = web_response
                         time3 = datetime.datetime.now()  # capture current time when process 3 finishes
                     except:
                         st.error("Web search failed to respond; try again or uncheck internet searching.")
                         web_response = "Web search failed to respond."
-        
-        with col2:
-            with st.expander(f'Model 1, {model1} Response'):
-                st.write(model1_response)
+    
 
-            with st.expander(f"Model 2, {model2} Response"):
-                st.write(model2_response)
+        with col2:
+            with st.expander(f'Model 1 Response'):
+                st.write(st.session_state.model1_response)
+                
+
+            with st.expander(f"Model 2 Response"):
+                st.write(st.session_state.model2_response)
                 
             if use_internet:
                 if use_retrieval == "snippets":
                     with st.expander(f"Web Search {use_retrieval}:"):
-                        for snip in web_response:
+                        for snip in st.session_state.web_response:
                             st.markdown(snip)
 
                 
-                if use_retrieval == "RAG":
+                if use_retrieval == "RAG" and urls is not None:
                     with st.spinner('Obtaining fulltext from web search results...'):
                         web_scrape_response = browserless(urls, max) 
                         rag = prepare_rag(web_scrape_response)                
                     with st.spinner('Searching the vector database to assemble your answer...'):    
                         evidence_response = rag(st.session_state.user_question)
                         evidence_response = evidence_response["result"]
-                        web_response = f'Distilled RAG content from evidence: {evidence_response}'
-                    with st.expander('Content retrieved from the RAG model:'):
-                        st.markdown(web_response)   
+                        web_response = f'Distilled RAG content from evidence:\n\n{evidence_response}'
+                        st.session_state.ebm = web_response
+
                 
             else:
                 web_response = "No web search results included."
-            
+
+            if st.session_state.ebm is not '':
+                with st.expander('Content retrieved from the RAG model:'):
+                    st.markdown(st.session_state.ebm)   
+                       
                 
 
         final_answer = reconcile(st.session_state.user_question, model1_response, model2_response, web_response)
-
+        st.session_state.final_response = f'{st.session_state.user_question}\n\nFinal Response from {model3}\n\n{final_answer}'
         st.write(final_answer)
+    
+    with st.sidebar:
+        st.header('Download and View Last Reponses')
+        st.write('Updating parameters on the main page resets outputs, so view prior results here.')
+        if st.session_state.model1_response is not '':
+            with st.expander(f'Model 1 Response'):
+                st.write(st.session_state.model1_response)
+                st.download_button('Download Model1 Summary', st.session_state.model1_response, f'model1.txt', 'text/txt')
+        if st.session_state.model2_response is not '':        
+            with st.expander(f"Model 2 Response"):
+                st.write(st.session_state.model2_response)
+                st.download_button('Download Model2 Summary', st.session_state.model2_response, f'model2.txt', 'text/txt')
+        if st.session_state.ebm is not '':
+            with st.expander('Content retrieved from the RAG model'):
+                st.markdown(st.session_state.ebm)  
+                st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
+        if st.session_state.web_response is not [] and st.session_state.web_response is not '':
+            with st.expander(f"Web Search Snippets:"):
+                for snip in st.session_state.web_response:
+                    st.markdown(snip) 
+                st.download_button('Download Web Snippets', str(st.session_state.web_response), f'web_snips.txt', 'text/txt')
+        if st.session_state.final_response is not '':        
+            with st.expander(f"Current Consensus Response"):
+                st.write(st.session_state.final_response)
+                if len(st.session_state.thread) == 0 or st.session_state.thread[-1] != st.session_state.final_response:
+                    st.session_state.thread.append(st.session_state.final_response)
+                st.download_button('Download Final Response', st.session_state.final_response, f'final_response.txt', 'text/txt')
+
+        st.write("_______")
+        if st.session_state.thread is not []:        
+            with st.expander(f"Saved Record of Consensus Responses"):
+                convo_str = ''
+                convo_str = "\n\n".join(st.session_state.thread)
+                st.write(convo_str)
+                st.download_button('Download Conversation Record', convo_str, f'convo.txt', 'text/txt')
