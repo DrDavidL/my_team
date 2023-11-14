@@ -21,6 +21,8 @@ from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 
 client = OpenAI()
+use_rag = False
+use_snippets = False
 
 @st.cache_data
 def extract_domains(domains):
@@ -175,12 +177,12 @@ def create_retriever(texts):
 #     return splits
 
 @st.cache_resource
-def prepare_rag(list):
+def prepare_rag(list, model):
     # splits = split_texts(text, chunk_size=1000, overlap=100, split_method="recursive")
     text = ' <END OF SITE> '.join(list)
     splits = clean_and_split_html(text)
     retriever = create_retriever(splits)
-    llm = set_llm_chat(model="gpt-4-1106-preview", temperature=0.3)
+    llm = set_llm_chat(model=model, temperature=0.3)
     rag = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
     return rag
 
@@ -261,7 +263,7 @@ def browserless(url_list, max):
             # st.write(f' here is a {url}')
         payload =  {
             "url": url,
-            "rejectResourceTypes": ["image"],
+            # "rejectResourceTypes": ["image"],
         }
         
         response = requests.post(api_url, headers=headers, json=payload)
@@ -345,9 +347,9 @@ def scrapeninja(url_list, max):
             st.write("Error decoding JSON")
         i += 1
     full_response = ' '.join(response_complete)
-    limited_text = limit_tokens(full_response, 12000)
+    # limited_text = limit_tokens(full_response, 12000)
     # st.write(f'Here is the lmited text: {limited_text}')
-    return limited_text
+    return full_response
     # st.write(full_response)    
     # Join all the scraped text into a single string
     # return full_response
@@ -464,6 +466,9 @@ if 'ebm' not in st.session_state:
 if 'thread' not in st.session_state:
     st.session_state.thread =[]
     
+if 'domain_list' not in st.session_state:
+    st.session_state.domain_list = domain_list
+    
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 st.title("My AI Team")
@@ -479,25 +484,24 @@ if check_password():
 
 
     st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
-    use_retrieval = ""
-    use_internet = st.checkbox("Give the AI access to web content? By default reliable domains are searched; you may modify the list.")
+    use_internet = st.checkbox("Add Internet Resources?")
     if use_internet:
         
-        search_method = st.radio("Web search method:", ("Faster: Web snippets from up to 10 different sites", "Slower: RAG (Retrieval-Augmented Generation) leveraging the fulltext from up to 5 different sites"))
+        search_method = st.radio("Web search method:", ("Web snippets from up to 10 webpages", "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages"))
 
-        if search_method == "Slower: RAG (Retrieval-Augmented Generation) leveraging the fulltext from up to 5 different sites":
-            use_retrieval = "RAG"
+        if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages":
+            use_rag = True
             max = 5
-        if search_method == "Faster: Web snippets from up to 10 different sites":
-            use_retrieval = "snippets"
+        if search_method == "Web snippets from up to 10 webpages":
+            use_snippets = True
             max = 10
         add_domains = st.checkbox("Add additional domains to search?")
         if add_domains:
-            domain_to_add = st.text_input("Enter additional domains to search here (e.g. www.cdc.gov OR www.nih.gov):",)
+            domain_to_add = st.text_input("Enter additional domains to the list of options (e.g. www.cdc.gov OR www.nih.gov):",)
             if st.button("Add domain"):
-                domain_list.insert(0, domain_to_add)
-        with st.expander("Domains Emphasized in Search:", expanded=True):
-            domains_only = st.multiselect("View domains emphasized in search (or remove)", domain_list, default=domain_list)
+                st.session_state.domain_list.insert(0, domain_to_add)
+        with st.expander("Click to View Domains:", expanded=False):
+            domains_only = st.multiselect("Click after the last red one to see other options!", st.session_state.domain_list, default=default_domain_list)
         domains = ' OR '.join(['site:' + domain for domain in domains_only])
         # st.write(domains)
         
@@ -517,8 +521,9 @@ if check_password():
     with col1:
         model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=1)
         model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=5)
-        model3 = st.selectbox("Mode 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=3)
-
+        model3 = st.selectbox("Model 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=3)
+        if use_rag:
+            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-3.5-turbo-16k",  "gpt-4", "gpt-4-1106-preview"), index=3)
     # model1 = "gpt-3.5-turbo"
     # model2 = "gpt-3.5-turbo-16k"
     # # model3 = "gpt-4-1106-preview"
@@ -580,22 +585,20 @@ if check_password():
             with st.expander(f"Model 2 Response"):
                 st.write(st.session_state.model2_response)
                 
-            if use_internet:
-                if use_retrieval == "snippets":
-                    with st.expander(f"Web Search {use_retrieval}:"):
-                        for snip in st.session_state.web_response:
-                            st.markdown(snip)
+            if use_snippets:
+                with st.expander(f"Web Snippets:"):
+                    for snip in st.session_state.web_response:
+                        st.markdown(snip)
 
-                
-                if use_retrieval == "RAG" and urls is not None:
-                    with st.spinner('Obtaining fulltext from web search results...'):
-                        web_scrape_response = browserless(urls, max) 
-                        rag = prepare_rag(web_scrape_response)                
-                    with st.spinner('Searching the vector database to assemble your answer...'):    
-                        evidence_response = rag(st.session_state.user_question)
-                        evidence_response = evidence_response["result"]
-                        web_response = f'Distilled RAG content from evidence:\n\n{evidence_response}'
-                        st.session_state.ebm = web_response
+            elif use_rag: 
+                with st.spinner('Obtaining fulltext from web search results...'):
+                    web_scrape_response = scrapeninja(urls, max) 
+                    rag = prepare_rag(web_scrape_response, model4)                
+                with st.spinner('Searching the vector database to assemble your answer...'):    
+                    evidence_response = rag(st.session_state.user_question)
+                    evidence_response = evidence_response["result"]
+                    web_response = f'Distilled RAG content from evidence:\n\n{evidence_response}'
+                    st.session_state.ebm = web_response
 
                 
             else:
@@ -627,10 +630,12 @@ if check_password():
                 st.markdown(st.session_state.ebm)  
                 st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
         if len(st.session_state.web_response) is not 0:
-            with st.expander(f"Web Search Snippets:"):
-                for snip in st.session_state.web_response:
-                    st.markdown(snip) 
-                st.download_button('Download Web Snippets', str(st.session_state.web_response), f'web_snips.txt', 'text/txt')
+            if use_snippets:
+                with st.expander(f"Web Search Content:"):                
+                    st.markdown("Web Snippets:")
+                    for snip in st.session_state.web_response:                    
+                        st.markdown(snip) 
+                    st.download_button('Download Web Snippets', str(st.session_state.web_response), f'web_snips.txt', 'text/txt')
         if st.session_state.final_response is not '':        
             with st.expander(f"Current Consensus Response"):
                 st.write(st.session_state.final_response)

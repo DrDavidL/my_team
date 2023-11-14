@@ -12,4 +12,6 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
 
 domain_list = ["www.nih.gov", "www.cdc.gov", "www.who.int",   "www.pubmed.gov",  "www.cochranelibrary.com",  "www.uptodate.com",  "www.medscape.com",  "www.ama-assn.org",
   "www.nejm.org",  "www.bmj.com",  "www.thelancet.com",  "www.jamanetwork.com",  "www.mayoclinic.org",  "www.acpjournals.org",  "www.cell.com",  "www.nature.com",
-  "www.springer.com",  "www.wiley.com", "www.ahrq.gov",]
+  "www.springer.com",  "www.wiley.com", "www.ahrq.gov","www.ncbi.nlm.nih.gov/books"]
+
+default_domain_list = ["www.cdc.gov", "www.medscape.com", "www.ncbi.nlm.nih.gov/books"]
