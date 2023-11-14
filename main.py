@@ -24,6 +24,34 @@ client = OpenAI()
 use_rag = False
 use_snippets = False
 
+def realtime_search(query, domains, max):
+
+
+    url = "https://real-time-web-search.p.rapidapi.com/search"
+    
+    query = domains + " " + query
+
+    querystring = {"q":query,"limit":max}
+
+    headers = {
+        "X-RapidAPI-Key": st.secrets["X-RapidAPI-Key"],
+        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
+    }
+    urls = []
+    snippets = []
+    response = requests.get(url, headers=headers, params=querystring)
+    # st.write(f'here is the full {response}')
+    response_data = response.json()
+    # st.write(f'here is the response data data {response["data"]}')
+    for item in response_data['data']:
+        urls.append(item['url'])   
+        snippets.append(item['snippet'])
+    # st.write(urls)
+    # st.write(snippets)
+    return snippets, urls
+
+    # print(response.json())
+
 @st.cache_data
 def extract_domains(domains):
     """
@@ -42,10 +70,42 @@ def extract_domains(domains):
     domain_names = [site.replace('site:', '') for site in sites]
 
     return domain_names
+@st.cache_data
+def websearch_snippets(web_query: str, domains, max):
 
+    
+    web_query = domains + " " + web_query
+    # st.info(f'Here is the websearch input: **{web_query}**')
+    url = "https://real-time-web-search.p.rapidapi.com/search"
+    querystring = {"q":web_query,"limit":max}
+    headers = {
+        "X-RapidAPI-Key": st.secrets["X-RapidAPI-Key"],
+        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
+    }
+
+    response = requests.get(url, headers=headers, params=querystring)
+    response_data = response.json()
+    # response_data = join_and_clean_snippets(response_data.text)
+    # def display_search_results(json_data):
+    #     data = json_data['data']
+    #     for item in data:
+    #         st.sidebar.markdown(f"### [{item['title']}]({item['url']})")
+    #         st.sidebar.write(item['snippet'])
+    #         st.sidebar.write("---")
+    # st.info('Searching the web using: **{web_query}**')
+    # display_search_results(response_data)
+    # st.session_state.done = True
+    urls = []
+    snippets = []
+    for item in response_data['data']:
+        urls.append(item['url'])   
+        snippets.append(item['snippet'])
+    st.write(urls)
+    st.write(snippets)
+    return snippets, urls
 
 @st.cache_data
-def websearch_snippets(web_query, max):
+def websearch_snippets_old(web_query, domains, max):
     web_query = domains + " " + web_query
     api_url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
@@ -65,6 +125,7 @@ def websearch_snippets(web_query, max):
 
     # st.info("Web snippets reviewed.")
     st.write(f'HERE IS THE SNIPPETS RESPONSE: {all_snippets}')
+    st.write(f'HERE ARE THE URLS: {urls}')
     
     return all_snippets, urls
 
@@ -221,8 +282,10 @@ def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
     # display_search_results(response_data)
     # st.session_state.done = True
     urls = []
+    snippets = []
     for item in response_data['data']:
-        urls.append(item['url'])    
+        urls.append(item['url'])   
+        snippets.append(item['snippet'])
     if retrieval == "fulltext" or retrieval == "RAG":
             # st.write(item['url'])
         if scrape_method != "Browserless":
@@ -469,6 +532,9 @@ if 'thread' not in st.session_state:
 if 'domain_list' not in st.session_state:
     st.session_state.domain_list = domain_list
     
+if 'snippets' not in st.session_state:
+    st.session_state.snippets = []
+    
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 st.title("My AI Team")
@@ -532,6 +598,13 @@ if check_password():
     begin = st.button("Ask")
 
     if begin:
+        if use_internet:
+            try:
+                st.session_state.snippets, urls = realtime_search(st.session_state.user_question, domains, max)
+                # st.write(f'sending {st.session_state.user_question} to websearch_snippets')
+            except:
+                st.error("Web search failed to respond; try again or uncheck internet searching.")
+                st.session_state.snippets = ["Web search failed to respond.", "Try again or uncheck internet searching."]
 
         # """
         # Main function to execute API calls concurrently.
@@ -539,14 +612,12 @@ if check_password():
         # Define the arguments for each function call
         args1 = (prefix, '', '', st.session_state.user_question, 0.4, '', model1, False)
         args2 = (prefix, '', '', st.session_state.user_question, 0.4, '', model2, False)
-        if use_internet:
-            args3 = (st.session_state.user_question, max)
+
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future1 = executor.submit(answer_using_prefix, *args1)
             future2 = executor.submit(answer_using_prefix, *args2)
-            if use_internet:
-                future3 = executor.submit(websearch_snippets, *args3)
+            # future3 = executor.submit(realtime_search, *args3)
      
 
         
@@ -567,14 +638,12 @@ if check_password():
                 except:
                     st.error("Model 2 failed to respond; consider changing.")
                     model2_response = "Model 2 failed to respond."
-                if use_internet:
-                    try:
-                        web_response, urls = future3.result()
-                        st.session_state.web_response = web_response
-                        time3 = datetime.datetime.now()  # capture current time when process 3 finishes
-                    except:
-                        st.error("Web search failed to respond; try again or uncheck internet searching.")
-                        web_response = "Web search failed to respond."
+
+                # try:
+                #     snippets, urls = future3.result()
+                #     st.session_state.snippets = snippets
+                #     time3 = datetime.datetime.now()  # capture current time when process 3 finishes
+
     
 
         with col2:
@@ -586,31 +655,36 @@ if check_password():
                 st.write(st.session_state.model2_response)
                 
             if use_snippets:
-                with st.expander(f"Web Snippets:"):
-                    for snip in st.session_state.web_response:
+                with st.expander(f"Web Snippets"):
+                    for snip in st.session_state.snippets:
                         st.markdown(snip)
 
-            elif use_rag: 
+            if use_rag: 
                 with st.spinner('Obtaining fulltext from web search results...'):
                     web_scrape_response = scrapeninja(urls, max) 
                     rag = prepare_rag(web_scrape_response, model4)                
                 with st.spinner('Searching the vector database to assemble your answer...'):    
                     evidence_response = rag(st.session_state.user_question)
                     evidence_response = evidence_response["result"]
-                    web_response = f'Distilled RAG content from evidence:\n\n{evidence_response}'
-                    st.session_state.ebm = web_response
+                    st.session_state.ebm = f'Distilled RAG content from evidence:\n\n{evidence_response}'
+                    
 
                 
-            else:
-                web_response = "No web search results included."
+            # else:
+            #     web_response = "No web search results included."
 
-            if st.session_state.ebm != '':
+            if use_rag and st.session_state.ebm != '':
                 with st.expander('Content retrieved from the RAG model:'):
                     st.markdown(st.session_state.ebm)   
                        
-                
+        if use_snippets:   
+            web_addition = ' <END OF SITE> '.join(st.session_state.snippets)
+        elif use_rag:
+            web_addition = st.session_state.ebm
+        else:
+            web_addition = ''       
 
-        final_answer = reconcile(st.session_state.user_question, model1_response, model2_response, web_response)
+        final_answer = reconcile(st.session_state.user_question, model1_response, model2_response, web_addition)
         st.session_state.final_response = f'{st.session_state.user_question}\n\nFinal Response from {model3}\n\n{final_answer}'
         st.write(final_answer)
     
@@ -629,13 +703,13 @@ if check_password():
             with st.expander('Content retrieved from the RAG model'):
                 st.markdown(st.session_state.ebm)  
                 st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
-        if len(st.session_state.web_response) != 0:
+        if use_internet:
             if use_snippets:
                 with st.expander(f"Web Search Content:"):                
                     st.markdown("Web Snippets:")
-                    for snip in st.session_state.web_response:                    
+                    for snip in st.session_state.snippets:                    
                         st.markdown(snip) 
-                    st.download_button('Download Web Snippets', str(st.session_state.web_response), f'web_snips.txt', 'text/txt')
+                    st.download_button('Download Web Snippets', str(st.session_state.snippets), f'web_snips.txt', 'text/txt')
         if st.session_state.final_response != '':        
             with st.expander(f"Current Consensus Response"):
                 st.write(st.session_state.final_response)
@@ -650,3 +724,4 @@ if check_password():
                 convo_str = "\n\n________\n\n________\n\n".join(st.session_state.thread)
                 st.write(convo_str)
                 st.download_button('Download Conversation Record', convo_str, f'convo.txt', 'text/txt')
+                
