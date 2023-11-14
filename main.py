@@ -25,7 +25,7 @@ use_rag = False
 use_snippets = False
 
 def realtime_search(query, domains, max):
-
+    # st.write(f'here is the query: {query} and here are the domains: {domains} and here is the max: {max}')
 
     url = "https://real-time-web-search.p.rapidapi.com/search"
     
@@ -42,10 +42,11 @@ def realtime_search(query, domains, max):
     response = requests.get(url, headers=headers, params=querystring)
     # st.write(f'here is the full {response}')
     response_data = response.json()
+    # st.write(response.json())
     # st.write(f'here is the response data data {response["data"]}')
     for item in response_data['data']:
         urls.append(item['url'])   
-        snippets.append(item['snippet'])
+        snippets.append(f"{item['title']} {item['snippet']}  {item['url']}  <END OF SITE>" )
     # st.write(urls)
     # st.write(snippets)
     return snippets, urls
@@ -661,7 +662,7 @@ if check_password():
 
             if use_rag: 
                 with st.spinner('Obtaining fulltext from web search results...'):
-                    web_scrape_response = scrapeninja(urls, max) 
+                    web_scrape_response = browserless(urls, max) 
                     rag = prepare_rag(web_scrape_response, model4)                
                 with st.spinner('Searching the vector database to assemble your answer...'):    
                     evidence_response = rag(st.session_state.user_question)
