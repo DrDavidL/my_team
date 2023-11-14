@@ -557,6 +557,7 @@ if check_password():
         search_method = st.radio("Web search method:", ("Web snippets from up to 10 webpages", "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages"))
 
         if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages":
+            scrape_method = st.radio("Web scraping method:", ("Browserless", "ScrapeNinja"))
             use_rag = True
             max = 5
         if search_method == "Web snippets from up to 10 webpages":
@@ -662,7 +663,10 @@ if check_password():
 
             if use_rag: 
                 with st.spinner('Obtaining fulltext from web search results...'):
-                    web_scrape_response = browserless(urls, max) 
+                    if scrape_method != "Browserless":
+                        web_scrape_response = scrapeninja(urls, max) 
+                    if scrape_method == "Browserless":
+                        web_scrape_response = browserless(urls, max)
                     rag = prepare_rag(web_scrape_response, model4)                
                 with st.spinner('Searching the vector database to assemble your answer...'):    
                     evidence_response = rag(st.session_state.user_question)
