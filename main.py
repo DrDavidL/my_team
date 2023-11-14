@@ -604,7 +604,7 @@ if check_password():
             else:
                 web_response = "No web search results included."
 
-            if st.session_state.ebm is not '':
+            if st.session_state.ebm != '':
                 with st.expander('Content retrieved from the RAG model:'):
                     st.markdown(st.session_state.ebm)   
                        
@@ -617,26 +617,26 @@ if check_password():
     with st.sidebar:
         st.header('Download and View Last Reponses')
         st.write('Updating parameters on the main page resets outputs, so view prior results here.')
-        if st.session_state.model1_response is not '':
+        if st.session_state.model1_response != '':
             with st.expander(f'Model 1 Response'):
                 st.write(st.session_state.model1_response)
                 st.download_button('Download Model1 Summary', st.session_state.model1_response, f'model1.txt', 'text/txt')
-        if st.session_state.model2_response is not '':        
+        if st.session_state.model2_response != '':        
             with st.expander(f"Model 2 Response"):
                 st.write(st.session_state.model2_response)
                 st.download_button('Download Model2 Summary', st.session_state.model2_response, f'model2.txt', 'text/txt')
-        if st.session_state.ebm is not '':
+        if st.session_state.ebm != '':
             with st.expander('Content retrieved from the RAG model'):
                 st.markdown(st.session_state.ebm)  
                 st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
-        if len(st.session_state.web_response) is not 0:
+        if len(st.session_state.web_response) != 0:
             if use_snippets:
                 with st.expander(f"Web Search Content:"):                
                     st.markdown("Web Snippets:")
                     for snip in st.session_state.web_response:                    
                         st.markdown(snip) 
                     st.download_button('Download Web Snippets', str(st.session_state.web_response), f'web_snips.txt', 'text/txt')
-        if st.session_state.final_response is not '':        
+        if st.session_state.final_response != '':        
             with st.expander(f"Current Consensus Response"):
                 st.write(st.session_state.final_response)
                 if len(st.session_state.thread) == 0 or st.session_state.thread[-1] != st.session_state.final_response:
@@ -644,7 +644,7 @@ if check_password():
                 st.download_button('Download Final Response', st.session_state.final_response, f'final_response.txt', 'text/txt')
 
         st.write("_______")
-        if st.session_state.thread is not []:        
+        if st.session_state.thread != []:        
             with st.expander(f"Saved Record of Consensus Responses"):
                 convo_str = ''
                 convo_str = "\n\n________\n\n________\n\n".join(st.session_state.thread)
