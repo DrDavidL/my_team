@@ -625,7 +625,7 @@ if check_password():
             with st.expander('Content retrieved from the RAG model'):
                 st.markdown(st.session_state.ebm)  
                 st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
-        if st.session_state.web_response is not [] and st.session_state.web_response is not '':
+        if  str(st.session_state.web_response) is not '':
             with st.expander(f"Web Search Snippets:"):
                 for snip in st.session_state.web_response:
                     st.markdown(snip) 
