@@ -479,9 +479,10 @@ if check_password():
 
 
     st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
-
+    use_retrieval = ""
     use_internet = st.checkbox("Give the AI access to web content? By default reliable domains are searched; you may modify the list.")
     if use_internet:
+        
         search_method = st.radio("Web search method:", ("Faster: Web snippets from up to 10 different sites", "Slower: RAG (Retrieval-Augmented Generation) leveraging the fulltext from up to 5 different sites"))
 
         if search_method == "Slower: RAG (Retrieval-Augmented Generation) leveraging the fulltext from up to 5 different sites":
