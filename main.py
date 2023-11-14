@@ -304,13 +304,15 @@ def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
     
 @st.cache_data
 def browserless(url_list, max):
+    # st.write(f'Pages scraped:\n\n{url_list}')
     # st.write(url_list)
     # if max > 5:
     #     max = 5
     response_complete = []
     i = 0
     key = st.secrets["BROWSERLESS_API_KEY"]
-    api_url = f'https://chrome.browserless.io/content?token={key}&proxy=residential&proxyCountry=us&proxySticky'
+    # api_url = f'https://chrome.browserless.io/content?token={key}&proxy=residential&proxyCountry=us&proxySticky'
+    api_url = f'https://chrome.browserless.io/content?token={key}'
 
     headers = {
         # 'Cache-Control': 'no-cache',
@@ -327,6 +329,7 @@ def browserless(url_list, max):
             # st.write(f' here is a {url}')
         payload =  {
             "url": url,
+            "waitFor": 3000,
             # "rejectResourceTypes": ["image"],
         }
         
@@ -361,6 +364,7 @@ def limit_tokens(text, max_tokens=10000):
 
 @st.cache_data
 def scrapeninja(url_list, max):
+    st.write(f'here are urls going to scrapeninja {url_list}')
     # st.write(url_list)
     if max > 5:
         max = 5
@@ -666,6 +670,9 @@ if check_password():
                     if scrape_method != "Browserless":
                         web_scrape_response = scrapeninja(urls, max) 
                     if scrape_method == "Browserless":
+                        with st.expander("Webpages Scraped"):
+                            for url in urls:
+                                st.write(url)
                         web_scrape_response = browserless(urls, max)
                     rag = prepare_rag(web_scrape_response, model4)                
                 with st.spinner('Searching the vector database to assemble your answer...'):    
