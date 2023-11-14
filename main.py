@@ -625,7 +625,7 @@ if check_password():
             with st.expander('Content retrieved from the RAG model'):
                 st.markdown(st.session_state.ebm)  
                 st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
-        if  str(st.session_state.web_response) is not '':
+        if len(st.session_state.web_response) is not 0:
             with st.expander(f"Web Search Snippets:"):
                 for snip in st.session_state.web_response:
                     st.markdown(snip) 
@@ -641,6 +641,6 @@ if check_password():
         if st.session_state.thread is not []:        
             with st.expander(f"Saved Record of Consensus Responses"):
                 convo_str = ''
-                convo_str = "\n\n".join(st.session_state.thread)
+                convo_str = "\n\n________\n\n________\n\n".join(st.session_state.thread)
                 st.write(convo_str)
                 st.download_button('Download Conversation Record', convo_str, f'convo.txt', 'text/txt')
