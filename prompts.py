@@ -15,3 +15,15 @@ domain_list = ["www.nih.gov", "www.cdc.gov", "www.who.int",   "www.pubmed.gov", 
   "www.springer.com",  "www.wiley.com", "www.ahrq.gov","www.ncbi.nlm.nih.gov/books", ".gov", ".edu", ".org",]
 
 default_domain_list = ["www.cdc.gov", "www.medscape.com", "www.ncbi.nlm.nih.gov/books", ".gov", ".edu", ".org",]
+
+assistant_prompt_pubmed ="""# PubMed API Query Generator
+
+As a physician, you often need to access the most recent guidelines and review articles related to your field. This tool will assist you in creating an optimally formatted query for the PubMed API. 
+
+To generate the most suitable query terms, please provide the specific medical topic or question you are interested in. The aim is to retrieve only guidelines and review articles, so the specificity 
+of your topic or question will enhance the relevancy of the results.
+
+**Please enter your medical topic or question below:**
+"""
+
+system_prompt_pubmed = "Solely follow your role as a query generator. Do not attempt to answer the question and do not include any disclaimers."
