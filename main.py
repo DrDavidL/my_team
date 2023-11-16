@@ -205,9 +205,9 @@ def set_llm_chat(model, temperature):
     if model == "gpt-4" or model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-4-1106-preview":
         return ChatOpenAI(model=model, openai_api_base = "https://api.openai.com/v1/", openai_api_key = st.secrets["OPENAI_API_KEY"], temperature=temperature)
     else:
-        headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
+        headers={ "HTTP-Referer": "https://my-ai-team.streamlit.app", # To identify your app
           "X-Title": "GPT and Med Ed"}
-        return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = st.secrets["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 500, headers=headers)
+        return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = st.secrets["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 1500, headers=headers)
 
 @st.cache_resource
 def create_retriever(texts):  
@@ -439,7 +439,8 @@ def reconcile(question, old, new, web_content):
 
 @st.cache_data
 def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperature, history_context, model, print = False):
-
+    if model =="gpt-3.5-turbo-1106":
+        model = "gpt-3.5-turbo-1106"
     if model == "openai/gpt-3.5-turbo":
         model = "gpt-3.5-turbo"
     if model == "openai/gpt-3.5-turbo-16k":
@@ -452,7 +453,7 @@ def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperat
             {'role': 'user', 'content': sample_question},
             {'role': 'assistant', 'content': sample_answer},
             {'role': 'user', 'content': history_context + my_ask},]
-    if model == "gpt-4" or model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-4-1106-preview":
+    if model == "gpt-4" or model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-4-1106-preview" or model == "gpt-3.5-turbo-1106":
         openai.api_base = "https://api.openai.com/v1/"
         openai.api_key = st.secrets['OPENAI_API_KEY']
         response = client.chat.completions.create(
@@ -555,6 +556,7 @@ if check_password():
 
 
     st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
+    begin = st.button("Enter!")
     use_internet = st.checkbox("Add Internet Resources?")
     if use_internet:
         
@@ -591,17 +593,19 @@ if check_password():
     col1, col2 = st.columns(2)
 
     with col1:
-        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=1)
-        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=5)
-        model3 = st.selectbox("Model 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=3)
-        if use_rag:
-            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-3.5-turbo-16k",  "gpt-4", "gpt-4-1106-preview"), index=3)
+        with st.expander("Click to View Model Options:", expanded=False):
+            st.markdown("[Model Explanations](https://openrouter.ai/models)")
+            model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
+            model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=5)
+            model3 = st.selectbox("Reonciliation Model 3 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=3)
+            if use_rag:
+                model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-3.5-turbo-16k",  "gpt-4", "gpt-4-1106-preview"), index=3)
     # model1 = "gpt-3.5-turbo"
     # model2 = "gpt-3.5-turbo-16k"
     # # model3 = "gpt-4-1106-preview"
     # model3 = "undi95/toppy-m-7b"
 
-    begin = st.button("Ask")
+        
 
     if begin:
         if use_internet:

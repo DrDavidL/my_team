@@ -26,4 +26,10 @@ of your topic or question will enhance the relevancy of the results.
 **Please enter your medical topic or question below:**
 """
 
-system_prompt_pubmed = "Solely follow your role as a query generator. Do not attempt to answer the question and do not include any disclaimers."
+system_prompt_pubmed = """Solely follow your role as a query generator. Do not attempt to answer the question and do not include any disclaimers. Return only the query terms, no explanations.
+
+Sample user question: Is lisinopril a first line blood pressure agent?
+
+Sample system response:  (("lisinopril"[Title/Abstract] OR "lisinopril"[MeSH Terms]) AND ("first line"[Title/Abstract] OR "first-line"[Title/Abstract]) AND ("blood pressure"[Title/Abstract] OR "hypertension"[MeSH Terms])) AND ("guideline"[Publication Type] OR "review"[Publication Type])
+
+"""

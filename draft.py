@@ -69,9 +69,10 @@ def pubmed_guidelines(search_terms, search_type):
             details = details_response.json()
             if 'result' in details and str(id) in details['result']:
                 article = details['result'][str(id)]
+                link = f"https://pubmed.ncbi.nlm.nih.gov/{id}"
                 year = article['pubdate'].split(" ")[0]
                 if year.isdigit():
-                    guideline_links.append(f"https://pubmed.ncbi.nlm.nih.gov/{id}")
+                    guideline_links.append(link)
                     articles.append({
                         'title': article['title'],
                         'year': year,
@@ -631,6 +632,9 @@ if 'domain_list' not in st.session_state:
 if 'snippets' not in st.session_state:
     st.session_state.snippets = []
     
+if 'articles' not in st.session_state:
+    st.session_state.articles = []
+    
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 st.title("My AI Team")
@@ -654,7 +658,7 @@ if check_password():
         if search_method == "Guidelines from PubMed":
             use_pubmed = True
         
-        if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages":
+        if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages" or search_method == "Guidelines from PubMed":
             scrape_method = st.radio("Web scraping method:", ("Browserless", "ScrapeNinja"))
             use_rag = True
             max = 5
@@ -715,7 +719,7 @@ if check_password():
         if use_snippets or use_rag:
             args3 = (st.session_state.user_question, domains, max)
         if use_pubmed:
-            args3 = (pubmed_query, "guidelines")
+            args4 = (pubmed_query, "guidelines")
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future1 = executor.submit(answer_using_prefix, *args1)
@@ -723,7 +727,7 @@ if check_password():
             if use_snippets or use_rag:
                 future3 = executor.submit(realtime_search, *args3)
             if use_pubmed:
-                future3 = executor.submit(pubmed_query, *args3)
+                future4 = executor.submit(pubmed_query, *args4)
      
 
         
@@ -756,13 +760,14 @@ if check_password():
                         
                 if use_pubmed:
                     try:
-                        snippets, urls = future3.result()
-                        st.session_state.snippets = snippets
-                        time3 = datetime.datetime.now()  # capture current time when process 3 finishes
+                        articles, links = future4.result()
+                        st.session_state.articles = articles
+                        time4 = datetime.datetime.now()  # capture current time when process 3 finishes
                         
                     except:
-                        st.error("Web Snippets failed to respond; consider unchecking internet.")
-                        st.session_state.snippets += "Model 2 failed to respond."
+                        st.error("No recent guidelines identified!")
+                        st.session_state.articles.append("No recent guidelines identified!")
+                        urls = []
 
     
 
@@ -780,23 +785,25 @@ if check_password():
                         st.markdown(snip)
             if use_pubmed:
                 with st.expander(f"Guidelines"):
-                    for snip in st.session_state.snippets:
-                        st.markdown(snip)
+                    for article in st.session_state.articles:
+                        st.markdown(article)
+
 
             if use_rag or use_pubmed: 
-                with st.spinner('Obtaining fulltext from web search results...'):
-                    if scrape_method != "Browserless":
-                        web_scrape_response = scrapeninja(urls, max) 
-                    if scrape_method == "Browserless":
-                        with st.expander("Webpages Scraped"):
-                            for url in urls:
-                                st.write(url)
-                        web_scrape_response = browserless(urls, max)
-                    rag = prepare_rag(web_scrape_response, model4)                
-                with st.spinner('Searching the vector database to assemble your answer...'):    
-                    evidence_response = rag(st.session_state.user_question)
-                    evidence_response = evidence_response["result"]
-                    st.session_state.ebm = f'Distilled RAG content from evidence:\n\n{evidence_response}'
+                if urls != []:
+                    with st.spinner('Obtaining fulltext from web search results...'):
+                        if scrape_method != "Browserless":
+                            web_scrape_response = scrapeninja(urls, max) 
+                        if scrape_method == "Browserless":
+                            with st.expander("Webpages Scraped"):
+                                for url in urls:
+                                    st.write(url)
+                            web_scrape_response = browserless(urls, max)
+                        rag = prepare_rag(web_scrape_response, model4)                
+                    with st.spinner('Searching the vector database to assemble your answer...'):    
+                        evidence_response = rag(st.session_state.user_question)
+                        evidence_response = evidence_response["result"]
+                        st.session_state.ebm = f'Distilled RAG content from evidence:\n\n{evidence_response}'
                     
 
                 
