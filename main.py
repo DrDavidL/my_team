@@ -20,8 +20,9 @@ import datetime
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 import os
+from pathlib import Path
 
-
+st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 # Define the keys you expect to use
 keys = [
     "password",
@@ -34,21 +35,30 @@ keys = [
     "S2_API_KEY"
 ]
 
-
 # Initialize a dictionary to hold your configuration values
 config = {}
 
-# Attempt to load secrets and fall back to environment variables if not found
-try:
-    # Only attempt to access st.secrets if it's available
-    if hasattr(st, 'secrets'):
-        secrets = st.secrets
-    else:
-        secrets = {}
+# Define the expected paths for the secrets.toml file
+secrets_paths = [
+    "/root/.streamlit/secrets.toml",
+    "/tmp/8dbee9bcbf00653/.streamlit/secrets.toml"
+]
+
+# Check if a secrets.toml file exists in any of the expected paths
+secrets_file = None
+for path in secrets_paths:
+    if Path(path).is_file():
+        secrets_file = path
+        break
+
+# If a secrets.toml file is found, load it into the config
+if secrets_file:
+    with open(secrets_file, "r") as f:
+        secrets = toml.load(f)
     for key in keys:
-        config[key] = secrets.get(key, os.environ.get(key))
-except FileNotFoundError:
-    # If the secrets file is not found, use environment variables for all keys
+        config[key] = secrets.get(key)
+else:
+    # If no secrets.toml file is found, use environment variables for all keys
     for key in keys:
         config[key] = os.environ.get(key)
 
@@ -584,7 +594,7 @@ if 'snippets' not in st.session_state:
     st.session_state.snippets = []
     
 
-st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
+
 st.title("My AI Team")
 with st.expander("Please read before using"):
     st.write("This app is a demonstration of consensus approaches to answering clinical questions using AI. It is not intended for clinical use.")
