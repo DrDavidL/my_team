@@ -11,6 +11,7 @@ langchain = "*"
 tiktoken = "*"
 faiss-cpu = "*"
 pathlib = "*"
+async_timeout = "*"
 
 [dev-packages]
 
