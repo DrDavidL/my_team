@@ -19,11 +19,8 @@ import json
 import datetime
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
-import streamlit as st
 import os
 
-import streamlit as st
-import os
 
 # Define the keys you expect to use
 keys = [
@@ -37,25 +34,28 @@ keys = [
     "S2_API_KEY"
 ]
 
+
 # Initialize a dictionary to hold your configuration values
 config = {}
 
-# Check if 'secrets' is present and has each key
-if hasattr(st, 'secrets'):
+# Attempt to load secrets and fall back to environment variables if not found
+try:
+    # Only attempt to access st.secrets if it's available
+    if hasattr(st, 'secrets'):
+        secrets = st.secrets
+    else:
+        secrets = {}
     for key in keys:
-        if key in st.secrets:
-            config[key] = st.secrets[key]
-        else:
-            # If a key is missing in 'secrets', fall back to environment variables
-            config[key] = os.environ.get(key)
-else:
-    # If 'secrets' is not present, use environment variables for all keys
+        config[key] = secrets.get(key, os.environ.get(key))
+except FileNotFoundError:
+    # If the secrets file is not found, use environment variables for all keys
     for key in keys:
         config[key] = os.environ.get(key)
 
 # Now 'config' contains your configuration, regardless of the source
 # Example usage:
 # api_key = config["OPENAI_API_KEY"]
+
 
 
 
@@ -78,7 +78,10 @@ def realtime_search(query, domains, max):
     }
     urls = []
     snippets = []
-    response = requests.get(url, headers=headers, params=querystring)
+    try:
+        response = requests.get(url, headers=headers, params=querystring)
+    except:
+        st.error("RapidAPI real-time search failed to respond. Try again or uncheck internet searching.")
     # st.write(f'here is the full {response}')
     response_data = response.json()
     # st.write(response.json())
