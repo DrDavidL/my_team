@@ -19,6 +19,31 @@ import json
 import datetime
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
+import streamlit as st
+import os
+
+# This is all for Azure key management. It is not needed for this app. I looks for the keys in the environment variables.
+# Then it assigns them to st.secrets if they are found.
+# List of expected secret keys
+expected_keys = [
+    "OPENAI_API_KEY",
+    "X_RapidAPI_Key",
+    "X_USER_ID",
+    "OPENROUTER_API_KEY",
+    "pubmed_api_key",
+    "BROWSERLESS_API_KEY",
+    "S2_API_KEY"
+]
+
+# Initialize st.secrets if it does not exist
+if not hasattr(st, 'secrets'):
+    st.secrets = {}
+
+# Check for each expected key and assign it to st.secrets if found
+for key in expected_keys:
+    if key in os.environ:
+        st.secrets[key] = os.environ[key]
+
 
 client = OpenAI()
 use_rag = False
