@@ -73,37 +73,43 @@ client = OpenAI()
 use_rag = False
 use_snippets = False
 
-def realtime_search(query, domains, max):
-    # st.write(f'here is the query: {query} and here are the domains: {domains} and here is the max: {max}')
+import requests
+import streamlit as st
 
+def realtime_search(query, domains, max):
     url = "https://real-time-web-search.p.rapidapi.com/search"
     
-    query = domains + " " + query
-
-    querystring = {"q":query,"limit":max}
+    # Combine domains and query
+    full_query = f"{domains} {query}"
+    querystring = {"q": full_query, "limit": max}
 
     headers = {
-        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
-        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
+        "X-RapidAPI-Key": config["X_RapidAPI_Key"],
+        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com",
     }
+
     urls = []
     snippets = []
+
     try:
         response = requests.get(url, headers=headers, params=querystring)
-    except:
-        st.error("RapidAPI real-time search failed to respond. Try again or uncheck internet searching.")
-    # st.write(f'here is the full {response}')
-    response_data = response.json()
-    # st.write(response.json())
-    # st.write(f'here is the response data data {response["data"]}')
-    for item in response_data['data']:
-        urls.append(item['url'])   
-        snippets.append(f"{item['title']} {item['snippet']}  {item['url']}  <END OF SITE>" )
-    # st.write(urls)
-    # st.write(snippets)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            response_data = response.json()
+            for item in response_data.get('data', []):
+                urls.append(item.get('url'))   
+                snippets.append(f"{item.get('title')} {item.get('snippet')} {item.get('url')} <END OF SITE>")
+        else:
+            st.error(f"Search failed with status code: {response.status_code}")
+            return [], []
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"RapidAPI real-time search failed to respond: {e}")
+        return [], []
+
     return snippets, urls
 
-    # print(response.json())
 
 @st.cache_data
 def extract_domains(domains):
@@ -666,6 +672,10 @@ if check_password():
     if begin:
         if use_internet:
             try:
+                # st.write("trying to get websnippets")
+                # snips, urls = realtime_search("what is a black hole", domains, max)
+                # st.write(snips)
+                # st.write(f'Sending {st.session_state.user_question} and {domains} with max of {max} to websearch_snippets')
                 st.session_state.snippets, urls = realtime_search(st.session_state.user_question, domains, max)
                 # st.write(f'sending {st.session_state.user_question} to websearch_snippets')
             except:
