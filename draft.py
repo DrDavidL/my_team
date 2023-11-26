@@ -112,7 +112,7 @@ def realtime_search(query, domains, max):
     querystring = {"q":query,"limit":max}
 
     headers = {
-        "X-RapidAPI-Key": st.secrets["X-RapidAPI-Key"],
+        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
     urls = []
@@ -158,7 +158,7 @@ def websearch_snippets(web_query: str, domains, max):
     url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X-RapidAPI-Key": st.secrets["X-RapidAPI-Key"],
+        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
@@ -189,7 +189,7 @@ def websearch_snippets_old(web_query, domains, max):
     api_url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X-RapidAPI-Key": st.secrets["X-RapidAPI-Key"],
+        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
@@ -344,7 +344,7 @@ def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
     url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X-RapidAPI-Key": st.secrets["X-RapidAPI-Key"],
+        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
@@ -449,10 +449,10 @@ def scrapeninja(url_list, max):
     response_complete = []
     i = 0
     method = "POST"
-    key = st.secrets["X-RapidAPI-Key"]
+    key = st.secrets["X_RapidAPI_Key"]
     headers = {
         "content-type": "application/json",
-        "X-RapidAPI-Key": key,
+        "X_RapidAPI_Key": key,
         "X-RapidAPI-Host": "scrapeninja.p.rapidapi.com",
     }
     while i < max and i < len(url_list):
