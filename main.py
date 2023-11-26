@@ -27,6 +27,7 @@ import os
 
 # Define the keys you expect to use
 keys = [
+    "password",
     "OPENAI_API_KEY",
     "X_RapidAPI_Key",
     "X_USER_ID",
