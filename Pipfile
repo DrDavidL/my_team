@@ -10,6 +10,7 @@ beautifulsoup4 = "*"
 langchain = "*"
 tiktoken = "*"
 faiss-cpu = "*"
+pathlib = "*"
 
 [dev-packages]
 
