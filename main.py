@@ -22,10 +22,11 @@ from bs4 import BeautifulSoup
 import streamlit as st
 import os
 
-# This is all for Azure key management. It is not needed for this app. I looks for the keys in the environment variables.
-# Then it assigns them to st.secrets if they are found.
-# List of expected secret keys
-expected_keys = [
+import streamlit as st
+import os
+
+# Define the keys you expect to use
+keys = [
     "OPENAI_API_KEY",
     "X_RapidAPI_Key",
     "X_USER_ID",
@@ -35,14 +36,26 @@ expected_keys = [
     "S2_API_KEY"
 ]
 
-# Initialize st.secrets if it does not exist
-if not hasattr(st, 'secrets'):
-    st.secrets = {}
+# Initialize a dictionary to hold your configuration values
+config = {}
 
-# Check for each expected key and assign it to st.secrets if found
-for key in expected_keys:
-    if key in os.environ:
-        st.secrets[key] = os.environ[key]
+# Check if 'secrets' is present and has each key
+if hasattr(st, 'secrets'):
+    for key in keys:
+        if key in st.secrets:
+            config[key] = st.secrets[key]
+        else:
+            # If a key is missing in 'secrets', fall back to environment variables
+            config[key] = os.environ.get(key)
+else:
+    # If 'secrets' is not present, use environment variables for all keys
+    for key in keys:
+        config[key] = os.environ.get(key)
+
+# Now 'config' contains your configuration, regardless of the source
+# Example usage:
+# api_key = config["OPENAI_API_KEY"]
+
 
 
 client = OpenAI()
@@ -59,7 +72,7 @@ def realtime_search(query, domains, max):
     querystring = {"q":query,"limit":max}
 
     headers = {
-        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
+        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
     urls = []
@@ -105,7 +118,7 @@ def websearch_snippets(web_query: str, domains, max):
     url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
+        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
@@ -136,7 +149,7 @@ def websearch_snippets_old(web_query, domains, max):
     api_url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
+        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
@@ -228,18 +241,18 @@ def set_llm_chat(model, temperature):
     if model == "openai/gpt-4-1106-preview":
         model = "gpt-4-1106-preview"
     if model == "gpt-4" or model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-4-1106-preview":
-        return ChatOpenAI(model=model, openai_api_base = "https://api.openai.com/v1/", openai_api_key = st.secrets["OPENAI_API_KEY"], temperature=temperature)
+        return ChatOpenAI(model=model, openai_api_base = "https://api.openai.com/v1/", openai_api_key = config["OPENAI_API_KEY"], temperature=temperature)
     else:
         headers={ "HTTP-Referer": "https://my-ai-team.streamlit.app", # To identify your app
           "X-Title": "GPT and Med Ed"}
-        return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = st.secrets["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 1500, headers=headers)
+        return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = config["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 1500, headers=headers)
 
 @st.cache_resource
 def create_retriever(texts):  
     
     embeddings = OpenAIEmbeddings(model = "text-embedding-ada-002",
                                   openai_api_base = "https://api.openai.com/v1/",
-                                  openai_api_key = st.secrets['OPENAI_API_KEY']
+                                  openai_api_key = config['OPENAI_API_KEY']
                                   )
     try:
         vectorstore = FAISS.from_texts(texts, embeddings)
@@ -291,7 +304,7 @@ def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
     url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
+        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
@@ -335,7 +348,7 @@ def browserless(url_list, max):
     #     max = 5
     response_complete = []
     i = 0
-    key = st.secrets["BROWSERLESS_API_KEY"]
+    key = config["BROWSERLESS_API_KEY"]
     # api_url = f'https://chrome.browserless.io/content?token={key}&proxy=residential&proxyCountry=us&proxySticky'
     api_url = f'https://chrome.browserless.io/content?token={key}'
 
@@ -396,7 +409,7 @@ def scrapeninja(url_list, max):
     response_complete = []
     i = 0
     method = "POST"
-    key = st.secrets["X_RapidAPI_Key"]
+    key = config["X_RapidAPI_Key"]
     headers = {
         "content-type": "application/json",
         "X_RapidAPI_Key": key,
@@ -480,7 +493,7 @@ def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperat
             {'role': 'user', 'content': history_context + my_ask},]
     if model == "gpt-4" or model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-4-1106-preview" or model == "gpt-3.5-turbo-1106":
         openai.api_base = "https://api.openai.com/v1/"
-        openai.api_key = st.secrets['OPENAI_API_KEY']
+        openai.api_key = config['OPENAI_API_KEY']
         response = client.chat.completions.create(
             model = model,
             messages = messages,
@@ -496,7 +509,7 @@ def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperat
 
             # model = model,
             # messages = messages,
-            headers={"Authorization": "Bearer " + st.secrets["OPENROUTER_API_KEY"], # To identify your app
+            headers={"Authorization": "Bearer " + config["OPENROUTER_API_KEY"], # To identify your app
                     "Content-Type": "application/json",
                     "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
                     "X-Title": "GPT and Med Ed",
@@ -515,7 +528,7 @@ def check_password():
 
     def password_entered():
         """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
+        if st.session_state["password"] == config["password"]:
             st.session_state["password_correct"] = True
             del st.session_state["password"]  # don't store password
         else:
