@@ -477,6 +477,8 @@ def scrapeninja(url_list, max):
 @st.cache_data
 def reconcile(question, old, new, web_content):
     # Send a message to the model asking it to summarize the text
+    openai.api_base = "https://api.openai.com/v1/"
+    openai.api_key = config['OPENAI_API_KEY']
     response = client.chat.completions.create(
         model="gpt-4-1106-preview",
         messages=[
@@ -491,7 +493,7 @@ def reconcile(question, old, new, web_content):
 
 @st.cache_data
 def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperature, history_context, model, print = False):
-    if model =="gpt-3.5-turbo-1106":
+    if model == "openai/gpt-3.5-turbo-1106":
         model = "gpt-3.5-turbo-1106"
     if model == "openai/gpt-3.5-turbo":
         model = "gpt-3.5-turbo"
@@ -499,6 +501,8 @@ def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperat
         model = "gpt-3.5-turbo-16k"
     if model == "openai/gpt-4":
         model = "gpt-4"
+    if model == "openai/gpt-4-1106-preview":
+        model = "gpt-4-1106-preview"
     if history_context == None:
         history_context = ""
     messages = [{'role': 'system', 'content': prefix},
