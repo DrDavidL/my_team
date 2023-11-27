@@ -20,6 +20,9 @@ import datetime
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 import os
+# Correct import for Python 3.10 and later
+from collections.abc import Sequence
+
 # from pathlib import Path
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
