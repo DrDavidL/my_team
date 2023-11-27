@@ -23,7 +23,10 @@ import os
 from pathlib import Path
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
-# Define the keys you expect to use
+import os
+import streamlit as st
+
+# List of configuration keys expected in the secrets or environment variables
 keys = [
     "password",
     "OPENAI_API_KEY",
@@ -38,33 +41,20 @@ keys = [
 # Initialize a dictionary to hold your configuration values
 config = {}
 
-# Define the expected paths for the secrets.toml file
-secrets_paths = [
-    "/root/.streamlit/secrets.toml",
-    "/tmp/8dbee9bcbf00653/.streamlit/secrets.toml"
-]
+# Function to load configuration either from Streamlit secrets or environment variables
+def load_config(keys):
+    # Check if running on Streamlit Cloud
+    if 'STREAMLIT_SHARING_MODE' in os.environ:
+        # Use Streamlit secrets
+        for key in keys:
+            config[key] = st.secrets.get(key)
+    else:
+        # Use environment variables
+        for key in keys:
+            config[key] = os.environ.get(key)
 
-# Check if a secrets.toml file exists in any of the expected paths
-secrets_file = None
-for path in secrets_paths:
-    if Path(path).is_file():
-        secrets_file = path
-        break
-
-# If a secrets.toml file is found, load it into the config
-if secrets_file:
-    with open(secrets_file, "r") as f:
-        secrets = toml.load(f)
-    for key in keys:
-        config[key] = secrets.get(key)
-else:
-    # If no secrets.toml file is found, use environment variables for all keys
-    for key in keys:
-        config[key] = os.environ.get(key)
-
-# Now 'config' contains your configuration, regardless of the source
-# Example usage:
-# api_key = config["OPENAI_API_KEY"]
+# Call the function to load the config
+load_config(keys)
 
 
 
