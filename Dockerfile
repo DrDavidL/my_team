@@ -14,8 +14,8 @@ COPY requirements.txt ./
 RUN pip3 install -r requirements.txt
 
 # Copy your main application code and additional files such as prompts.py
-COPY main.py ./
-COPY prompts.py ./
+COPY main_docker.py ./
+COPY prompts_docker.py ./
 
 # If there are other files or directories to include, add them here
 # COPY other_file.py ./
@@ -28,4 +28,4 @@ EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
 # Set the entrypoint to run the Streamlit application
-ENTRYPOINT ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "main_docker.py", "--server.port=8501", "--server.address=0.0.0.0"]

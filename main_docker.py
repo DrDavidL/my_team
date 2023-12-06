@@ -11,7 +11,7 @@ from langchain.vectorstores import FAISS
 import streamlit as st
 import openai
 from openai import OpenAI
-from prompts_draft import *
+from prompts_docker import *
 import time
 import concurrent.futures
 import requests
@@ -26,8 +26,7 @@ from collections.abc import Sequence
 # from pathlib import Path
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
-import os
-import streamlit as st
+
 
 # List of configuration keys expected in the secrets or environment variables
 keys = [
@@ -624,207 +623,208 @@ with st.expander("Please read before using"):
 
 
 
-if check_password():
 
 
 
 
-    st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
-    begin = st.button("Enter!")
-    use_internet = st.checkbox("Add Internet Resources?")
-    if use_internet:
-        st.session_state.reformulated_query = reformulate_query(st.session_state.user_question)
-        
-        col1, col2 = st.columns([2,1])
-        
-        with col1:
-            search_method = st.radio("Web search method:", ("Web snippets from up to 10 webpages", "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages"))
 
-            if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages":
-                scrape_method = st.radio("Web scraping method:", ("Browserless", "ScrapeNinja"))
-                use_rag = True
-                max = 5
-            if search_method == "Web snippets from up to 10 webpages":
-                use_snippets = True
-                max = 10
-        with col2:
-            add_domains = st.checkbox("Specify domains? (Recommend you leave unchecked - let GPT pick domains! You'll see them in results.)")
-        if add_domains:
-            domain_to_add = st.text_input("Enter additional domains to the list of options (e.g. www.cdc.gov OR www.nih.gov):",)
-            if st.button("Add domain"):
-                st.session_state.domain_list.insert(0, domain_to_add)
-            with st.expander("Click to Edit Suggested Domains:", expanded=False):
-                domains_only = st.multiselect("Click after the last red one to see other options!", st.session_state.domain_list, default=default_domain_list)
-            domains = ' OR '.join(['site:' + domain for domain in domains_only])
-        # st.write(domains)
-        
-        # with st.expander("Domains used with web search:"):
-            
-        #     for site in domain_list:
-        #         st.write(site)
-
-        # max = 4
-        # if use_rag:
-        #     max = 9
-        
-    st.info("Please select the models you would like to use to answer your question. The first two models will be used to generate answers, and the third model will be used to reconcile the two answers and any web search results.")
-    st.warning("Please note this is a demo of late-breaking methods and there may be errors. Validate all answers independently before *thinking* of leveraging answers beyond just AI exploration.")
-    col1, col2 = st.columns(2)
-
+st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
+begin = st.button("Enter!")
+use_internet = st.checkbox("Add Internet Resources?")
+if use_internet:
+    st.session_state.reformulated_query = reformulate_query(st.session_state.user_question)
+    
+    col1, col2 = st.columns([2,1])
+    
     with col1:
-        with st.expander("Click to View Model Options:", expanded=False):
-            st.markdown("[Model Explanations](https://openrouter.ai/models)")
-            model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
-            model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=5)
-            model3 = st.selectbox("Reonciliation Model 3 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=3)
-            if use_rag:
-                model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-3.5-turbo-16k",  "gpt-4", "gpt-4-1106-preview"), index=3)
-    # model1 = "gpt-3.5-turbo"
-    # model2 = "gpt-3.5-turbo-16k"
-    # # model3 = "gpt-4-1106-preview"
-    # model3 = "undi95/toppy-m-7b"
+        search_method = st.radio("Web search method:", ("Web snippets from up to 10 webpages", "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages"))
 
+        if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages":
+            scrape_method = st.radio("Web scraping method:", ("Browserless", "ScrapeNinja"))
+            use_rag = True
+            max = 5
+        if search_method == "Web snippets from up to 10 webpages":
+            use_snippets = True
+            max = 10
+    with col2:
+        add_domains = st.checkbox("Specify domains? (Recommend you leave unchecked - let GPT pick domains! You'll see them in results.)")
+    if add_domains:
+        domain_to_add = st.text_input("Enter additional domains to the list of options (e.g. www.cdc.gov OR www.nih.gov):",)
+        if st.button("Add domain"):
+            st.session_state.domain_list.insert(0, domain_to_add)
+        with st.expander("Click to Edit Suggested Domains:", expanded=False):
+            domains_only = st.multiselect("Click after the last red one to see other options!", st.session_state.domain_list, default=default_domain_list)
+        domains = ' OR '.join(['site:' + domain for domain in domains_only])
+    # st.write(domains)
+    
+    # with st.expander("Domains used with web search:"):
         
+    #     for site in domain_list:
+    #         st.write(site)
 
-    if begin:
-        if use_internet:
-            try:
-                # st.write("trying to get websnippets")
-                # snips, urls = realtime_search("what is a black hole", domains, max)
-                # st.write(snips)
-                # st.write(f'Sending {st.session_state.user_question} and {domains} with max of {max} to websearch_snippets')
-                if add_domains:
-                    st.session_state.snippets, urls = realtime_search(st.session_state.user_question, domains, max)
-                
-                else:
-                    st.session_state.snippets, urls = realtime_search(st.session_state.reformulated_query, "", max)
-                # st.write(f'sending {st.session_state.user_question} to websearch_snippets')
-            except:
-                st.error("Web search failed to respond; try again or uncheck internet searching.")
-                st.session_state.snippets = ["Web search failed to respond.", "Try again or uncheck internet searching."]
+    # max = 4
+    # if use_rag:
+    #     max = 9
+    
+st.info("Please select the models you would like to use to answer your question. The first two models will be used to generate answers, and the third model will be used to reconcile the two answers and any web search results.")
+st.warning("Please note this is a demo of late-breaking methods and there may be errors. Validate all answers independently before *thinking* of leveraging answers beyond just AI exploration.")
+col1, col2 = st.columns(2)
 
-        # """
-        # Main function to execute API calls concurrently.
-        # """
-        # Define the arguments for each function call
-        args1 = (prefix, '', '', st.session_state.user_question, 0.4, '', model1, False)
-        args2 = (prefix, '', '', st.session_state.user_question, 0.4, '', model2, False)
+with col1:
+    with st.expander("Click to View Model Options:", expanded=False):
+        st.markdown("[Model Explanations](https://openrouter.ai/models)")
+        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
+        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=5)
+        model3 = st.selectbox("Reonciliation Model 3 Options", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=3)
+        # model5 = st.selectbox("Follow-up Question Model", ("openai/gpt-3.5-turbo-1106", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
+        if use_rag:
+            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-3.5-turbo-16k",  "gpt-4", "gpt-4-1106-preview"), index=3)
+# model1 = "gpt-3.5-turbo"
+# model2 = "gpt-3.5-turbo-16k"
+# # model3 = "gpt-4-1106-preview"
+# model3 = "undi95/toppy-m-7b"
 
+    
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future1 = executor.submit(answer_using_prefix, *args1)
-            future2 = executor.submit(answer_using_prefix, *args2)
-            # future3 = executor.submit(realtime_search, *args3)
-     
-
-        
-            with st.spinner('Waiting for models to respond...'):    
+if begin:
+    if use_internet:
+        try:
+            # st.write("trying to get websnippets")
+            # snips, urls = realtime_search("what is a black hole", domains, max)
+            # st.write(snips)
+            # st.write(f'Sending {st.session_state.user_question} and {domains} with max of {max} to websearch_snippets')
+            if add_domains:
+                st.session_state.snippets, urls = realtime_search(st.session_state.user_question, domains, max)
             
-                try:
-                    model1_response = future1.result()
-                    st.session_state.model1_response = f'{model1} response:\n\n{model1_response}'
-                    time1 = datetime.datetime.now()  # capture current time when process 1 finishes
-                except:
-                    st.error("Model 1 failed to respond; consider changing.")
-                    model1_response = "Model 1 failed to respond."
-                
-                try:
-                    model2_response = future2.result()
-                    st.session_state.model2_response = f'{model2} response:\n\n{model2_response}'
-                    time2 = datetime.datetime.now()  # capture current time when process 2 finishes
-                except:
-                    st.error("Model 2 failed to respond; consider changing.")
-                    model2_response = "Model 2 failed to respond."
+            else:
+                st.session_state.snippets, urls = realtime_search(st.session_state.reformulated_query, "", max)
+            # st.write(f'sending {st.session_state.user_question} to websearch_snippets')
+        except:
+            st.error("Web search failed to respond; try again or uncheck internet searching.")
+            st.session_state.snippets = ["Web search failed to respond.", "Try again or uncheck internet searching."]
 
-                # try:
-                #     snippets, urls = future3.result()
-                #     st.session_state.snippets = snippets
-                #     time3 = datetime.datetime.now()  # capture current time when process 3 finishes
+    # """
+    # Main function to execute API calls concurrently.
+    # """
+    # Define the arguments for each function call
+    args1 = (prefix, '', '', st.session_state.user_question, 0.4, '', model1, False)
+    args2 = (prefix, '', '', st.session_state.user_question, 0.4, '', model2, False)
 
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future1 = executor.submit(answer_using_prefix, *args1)
+        future2 = executor.submit(answer_using_prefix, *args2)
+        # future3 = executor.submit(realtime_search, *args3)
     
 
-        with col2:
-            with st.expander(f'Model 1 Response'):
-                st.write(st.session_state.model1_response)
+    
+        with st.spinner('Waiting for models to respond...'):    
+        
+            try:
+                model1_response = future1.result()
+                st.session_state.model1_response = f'{model1} response:\n\n{model1_response}'
+                time1 = datetime.datetime.now()  # capture current time when process 1 finishes
+            except:
+                st.error("Model 1 failed to respond; consider changing.")
+                model1_response = "Model 1 failed to respond."
+            
+            try:
+                model2_response = future2.result()
+                st.session_state.model2_response = f'{model2} response:\n\n{model2_response}'
+                time2 = datetime.datetime.now()  # capture current time when process 2 finishes
+            except:
+                st.error("Model 2 failed to respond; consider changing.")
+                model2_response = "Model 2 failed to respond."
+
+            # try:
+            #     snippets, urls = future3.result()
+            #     st.session_state.snippets = snippets
+            #     time3 = datetime.datetime.now()  # capture current time when process 3 finishes
+
+
+
+    with col2:
+        with st.expander(f'Model 1 Response'):
+            st.write(st.session_state.model1_response)
+            
+
+        with st.expander(f"Model 2 Response"):
+            st.write(st.session_state.model2_response)
+            
+        if use_snippets:
+            with st.expander(f"Web Snippets"):
+                for snip in st.session_state.snippets:
+                    st.markdown(snip)
+
+        if use_rag: 
+            with st.spinner('Obtaining fulltext from web search results...'):
+                if scrape_method != "Browserless":
+                    web_scrape_response = scrapeninja(urls, max) 
+                if scrape_method == "Browserless":
+                    with st.expander("Webpages Scraped"):
+                        for url in urls:
+                            st.write(url)
+                    web_scrape_response = browserless(urls, max)
+                rag = prepare_rag(web_scrape_response, model4)                
+            with st.spinner('Searching the vector database to assemble your answer...'):    
+                evidence_response = rag(st.session_state.user_question)
+                evidence_response = evidence_response["result"]
+                st.session_state.ebm = f'Distilled RAG content from evidence:\n\n{evidence_response}'
                 
 
-            with st.expander(f"Model 2 Response"):
-                st.write(st.session_state.model2_response)
-                
-            if use_snippets:
-                with st.expander(f"Web Snippets"):
-                    for snip in st.session_state.snippets:
-                        st.markdown(snip)
+            
+        # else:
+        #     web_response = "No web search results included."
 
-            if use_rag: 
-                with st.spinner('Obtaining fulltext from web search results...'):
-                    if scrape_method != "Browserless":
-                        web_scrape_response = scrapeninja(urls, max) 
-                    if scrape_method == "Browserless":
-                        with st.expander("Webpages Scraped"):
-                            for url in urls:
-                                st.write(url)
-                        web_scrape_response = browserless(urls, max)
-                    rag = prepare_rag(web_scrape_response, model4)                
-                with st.spinner('Searching the vector database to assemble your answer...'):    
-                    evidence_response = rag(st.session_state.user_question)
-                    evidence_response = evidence_response["result"]
-                    st.session_state.ebm = f'Distilled RAG content from evidence:\n\n{evidence_response}'
+        if use_rag and st.session_state.ebm != '':
+            with st.expander('Content retrieved from the RAG model:'):
+                st.markdown(st.session_state.ebm)   
                     
+    if use_snippets:   
+        web_addition = ' <END OF SITE> '.join(st.session_state.snippets)
+    elif use_rag:
+        web_addition = st.session_state.ebm
+    else:
+        web_addition = ''       
 
-                
-            # else:
-            #     web_response = "No web search results included."
+    final_answer = reconcile(st.session_state.user_question, model1_response, model2_response, web_addition)
+    st.session_state.final_response = f'{st.session_state.user_question}\n\nFinal Response from {model3}\n\n{final_answer}'
+    st.write(final_answer)
 
-            if use_rag and st.session_state.ebm != '':
-                with st.expander('Content retrieved from the RAG model:'):
-                    st.markdown(st.session_state.ebm)   
-                       
-        if use_snippets:   
-            web_addition = ' <END OF SITE> '.join(st.session_state.snippets)
-        elif use_rag:
-            web_addition = st.session_state.ebm
-        else:
-            web_addition = ''       
+with st.sidebar:
+    st.header('Download and View Last Reponses')
+    st.write('Updating parameters on the main page resets outputs, so view prior results here.')
+    if st.session_state.model1_response != '':
+        with st.expander(f'Model 1 Response'):
+            st.write(st.session_state.model1_response)
+            st.download_button('Download Model1 Summary', st.session_state.model1_response, f'model1.txt', 'text/txt')
+    if st.session_state.model2_response != '':        
+        with st.expander(f"Model 2 Response"):
+            st.write(st.session_state.model2_response)
+            st.download_button('Download Model2 Summary', st.session_state.model2_response, f'model2.txt', 'text/txt')
+    if st.session_state.ebm != '':
+        with st.expander('Content retrieved from the RAG model'):
+            st.markdown(st.session_state.ebm)  
+            st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
+    if use_internet:
+        if use_snippets:
+            with st.expander(f"Web Search Content:"):                
+                st.markdown("Web Snippets:")
+                for snip in st.session_state.snippets:                    
+                    st.markdown(snip) 
+                st.download_button('Download Web Snippets', str(st.session_state.snippets), f'web_snips.txt', 'text/txt')
+    if st.session_state.final_response != '':        
+        with st.expander(f"Current Consensus Response"):
+            st.write(st.session_state.final_response)
+            if len(st.session_state.thread) == 0 or st.session_state.thread[-1] != st.session_state.final_response:
+                st.session_state.thread.append(st.session_state.final_response)
+            st.download_button('Download Final Response', st.session_state.final_response, f'final_response.txt', 'text/txt')
 
-        final_answer = reconcile(st.session_state.user_question, model1_response, model2_response, web_addition)
-        st.session_state.final_response = f'{st.session_state.user_question}\n\nFinal Response from {model3}\n\n{final_answer}'
-        st.write(final_answer)
-    
-    with st.sidebar:
-        st.header('Download and View Last Reponses')
-        st.write('Updating parameters on the main page resets outputs, so view prior results here.')
-        if st.session_state.model1_response != '':
-            with st.expander(f'Model 1 Response'):
-                st.write(st.session_state.model1_response)
-                st.download_button('Download Model1 Summary', st.session_state.model1_response, f'model1.txt', 'text/txt')
-        if st.session_state.model2_response != '':        
-            with st.expander(f"Model 2 Response"):
-                st.write(st.session_state.model2_response)
-                st.download_button('Download Model2 Summary', st.session_state.model2_response, f'model2.txt', 'text/txt')
-        if st.session_state.ebm != '':
-            with st.expander('Content retrieved from the RAG model'):
-                st.markdown(st.session_state.ebm)  
-                st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
-        if use_internet:
-            if use_snippets:
-                with st.expander(f"Web Search Content:"):                
-                    st.markdown("Web Snippets:")
-                    for snip in st.session_state.snippets:                    
-                        st.markdown(snip) 
-                    st.download_button('Download Web Snippets', str(st.session_state.snippets), f'web_snips.txt', 'text/txt')
-        if st.session_state.final_response != '':        
-            with st.expander(f"Current Consensus Response"):
-                st.write(st.session_state.final_response)
-                if len(st.session_state.thread) == 0 or st.session_state.thread[-1] != st.session_state.final_response:
-                    st.session_state.thread.append(st.session_state.final_response)
-                st.download_button('Download Final Response', st.session_state.final_response, f'final_response.txt', 'text/txt')
+    st.write("_______")
+    if st.session_state.thread != []:        
+        with st.expander(f"Saved Record of Consensus Responses"):
+            convo_str = ''
+            convo_str = "\n\n________\n\n________\n\n".join(st.session_state.thread)
+            st.write(convo_str)
+            st.download_button('Download Conversation Record', convo_str, f'convo.txt', 'text/txt')
 
-        st.write("_______")
-        if st.session_state.thread != []:        
-            with st.expander(f"Saved Record of Consensus Responses"):
-                convo_str = ''
-                convo_str = "\n\n________\n\n________\n\n".join(st.session_state.thread)
-                st.write(convo_str)
-                st.download_button('Download Conversation Record', convo_str, f'convo.txt', 'text/txt')
-                

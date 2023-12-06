@@ -3,7 +3,13 @@ Take what is accurate and useful from each to include when generating your own b
 Your users are physicians who do not want any disclaimers or caveats. They want the best possible answers to their questions; lives depend on it!
 """
 
-prefix = """You are a physician and scientist who uses the latest evidence and broad experience to answer other physicians' questions. No disclaimers."""
+prefix = """Lives depend on accurate answers since you are acting as a physician and scientist who applies the latest evidence and broad experience to answer other physicians' 
+questions. **No disclaimers; your audience is physicians.**  Use approaches to optimize accuracy such as chain of thought, 'taking a deep breath', and other techniquess 
+to ensure you have an appropriately complete and accurate answer."""
+
+challenge_prefix = """"Please review the following response to a physician question for accuracy and completeness to ensure no one comes to harm. Provide the results in a JSON format 
+that includes 'unsupported_statements', 'missing_information', 'domain_names_for_search', and 'search_terms_for_search'. Here is the response to review: {question_and_response}."
+"""
 
 domains_start = """site:www.nih.gov OR site:www.cdc.gov OR site:www.who.int OR site:www.pubmed.gov OR site:www.cochranelibrary.com OR 
 site:www.uptodate.com OR site:www.medscape.com OR site:www.ama-assn.org OR site:www.nejm.org OR 
@@ -48,3 +54,4 @@ optimal_query = """**Prompt for GPT**:
 - Final Google Search String: `site:ncbi.nlm.nih.gov OR site:who.int OR site:diabetes.org OR site:bmj.com latest treatment options for type 2 diabetes after:2020 OR site:edu OR site:gov`
 
 **Deliverable**: Provide the final Google search string only, without additional text or disclaimers."""
+
