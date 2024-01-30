@@ -16,18 +16,18 @@ import time
 import concurrent.futures
 import requests
 import json
-import datetime
+# import datetime
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 import os
 # Correct import for Python 3.10 and later
-from collections.abc import Sequence
+# from collections.abc import Sequence
 
 # from pathlib import Path
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 import os
-import streamlit as st
+
 
 # List of configuration keys expected in the secrets or environment variables
 keys = [
@@ -66,8 +66,7 @@ client = OpenAI()
 use_rag = False
 use_snippets = False
 
-import requests
-import streamlit as st
+
 
 def realtime_search(query, domains, max):
     url = "https://real-time-web-search.p.rapidapi.com/search"
