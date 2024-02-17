@@ -1,29 +1,21 @@
-# This will make two simultaneous requests to LLMs and reconcile with a 3rd LLM.
+import concurrent.futures
+import datetime
+import json
+import os
+import time
+from urllib.parse import urlparse, urlunparse
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-# from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+import requests
+import streamlit as st
+from bs4 import BeautifulSoup
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.embeddings.openai import OpenAIEmbeddings
-# from langchain.callbacks.manager import CallbackManager
-# from langchain.chains import QAGenerationChain
 from langchain.vectorstores import FAISS
-import streamlit as st
-import openai
 from openai import OpenAI
-from prompts import *
-import time
-import concurrent.futures
-import requests
-import json
-# import datetime
-from urllib.parse import urlparse, urlunparse
-from bs4 import BeautifulSoup
-import os
-# Correct import for Python 3.10 and later
-# from collections.abc import Sequence
 
-# from pathlib import Path
+from prompts import *
+
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 import os
