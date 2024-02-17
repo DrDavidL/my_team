@@ -31,7 +31,7 @@ Instructions: Avoid including any disclaimers or caveats in your response. The p
 short_formatting = """Formatting Request: Perform **all steps** precisely as directed to assemble your response. Send text only for usefully organized sections entitled Evidence-Based Considerations and Final Clinical Guidance. 
 Use ### Evidence-Based Considerations and ### Final Clinical Guidance:" as the two headers for your response and format content with markdown as needed to enhance understanding.
 
-When referencing specific evidence, such as journal articles, please include a Google search link carefully constructed to retrieve the original reference. The link should be formatted innovatively, using varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
+When referencing specific evidence, such as journal articles, please include a Google search link carefully constructed to retrieve relevant content. *Any misleading direct links diminish overall confidence!* The link should be formatted innovatively, using varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Study on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
 """
@@ -41,7 +41,7 @@ Describe the steps performed, outcomes, and your final response in a clear, orga
 understanding. For example, you could use "### Critical Analysis:", "### Evidence Review:", "### Integration:", and "### Final Clinical Guidance:" as headers for each section 
 and format content with markdown as needed to enhance understanding.
 
-When referencing specific evidence, such as journal articles, please include a Google search link carefully constructed to retrieve the original reference. The link should be formatted innovatively, using varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
+When referencing specific evidence, such as journal articles, please include a Google search link carefully constructed to retrieve the original reference. *Any misleading direct links diminish overall confidence!* The link should be formatted innovatively, using varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Study on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
 """
