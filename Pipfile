@@ -12,6 +12,7 @@ tiktoken = "*"
 faiss-cpu = "*"
 pathlib = "*"
 async_timeout = "*"
+llama-index = "*"
 
 [dev-packages]
 
