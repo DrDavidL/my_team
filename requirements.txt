@@ -33,10 +33,6 @@ jsonpatch==1.33
 jsonpointer==2.4
 jsonschema==4.20.0
 jsonschema-specifications==2023.11.1
-langchain==0.0.340
-langchain-community==0.0.20
-langchain-core==0.1.23
-langchain-openai==0.0.6
 langsmith==0.0.87
 llama-index==0.10.6
 llama-index-agent-openai==0.1.1
