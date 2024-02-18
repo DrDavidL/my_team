@@ -610,14 +610,6 @@
             "markers": "python_version >= '3.8'",
             "version": "==2023.12.1"
         },
-        "langchain": {
-            "hashes": [
-                "sha256:29d95f12afe9690953820970205dba3b098ee1f7531e80eb18c1236d3feda921",
-                "sha256:b40fbe2b65360afe6c0d5bbf37e79469f990779460640edde5b906175c49807e"
-            ],
-            "index": "pypi",
-            "version": "==0.1.7"
-        },
         "langchain-community": {
             "hashes": [
                 "sha256:bd112b5813702919c50f89b1afa2b63adf1da89999df4842b327ee11220f8c39",
