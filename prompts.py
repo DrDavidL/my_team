@@ -91,3 +91,7 @@ For instance, if the user query is 'Tell me about indapamide', your response sho
 
 Your goal is to augment the original question with inferred specifics and detailed requests, thereby crafting an improved question that encourages a GPT model to deliver a focused, exhaustive response. Do not request additional details from the user; instead, enrich the question based on common academic and clinical interests, allowing the user to refine the query further if necessary before submission. Return only the enhanced question, ensuring it is primed for direct and effective answering by the GPT model.
 """
+
+rag_prompt = """Given the specific context of {context}, utilize your retrieval capabilities to find the most 
+relevant information that aligns with this context. Then, generate a response to the following question: {question}. Aim to provide a comprehensive, accurate, and contextually appropriate answer, leveraging both the retrieved information and your generative capabilities. Your response should prioritize relevance to the provided context, ensuring it addresses the user's inquiry effectively and succinctly.
+"""

@@ -1,135 +1,144 @@
-# This will make two simultaneous requests to LLMs and reconcile with a 3rd LLM.
-
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-# from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
-from langchain.embeddings.openai import OpenAIEmbeddings
-# from langchain.callbacks.manager import CallbackManager
-# from langchain.chains import QAGenerationChain
-from langchain.vectorstores import FAISS
-import streamlit as st
-import openai
-from openai import OpenAI
-from prompts import *
-import time
 import concurrent.futures
-import requests
-import json
 import datetime
+import json
+import os
+import time
 from urllib.parse import urlparse, urlunparse
+
+# from langchain.chains import AnalyzeDocumentChain
+# from langchain_openai import ChatOpenAI
+
+# from langchain.chains.question_answering import load_qa_chain
+
+# from langchain.chains import LLMChain
+# from langchain.prompts import PromptTemplate
+# from langchain_openai import OpenAI as LangChainOpenAI 
+import requests
+import streamlit as st
 from bs4 import BeautifulSoup
+# from langchain.chat_models import ChatOpenAI
+# from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+# from langchain.text_splitter import RecursiveCharacterTextSplitter
+# from langchain.chains import RetrievalQA
+# from langchain.embeddings.openai import OpenAIEmbeddings
+# from langchain.vectorstores import FAISS
+# from langchain_community.vectorstores import FAISS
+import openai  # For accessing the openai module's functionalities
+from openai import OpenAI  # For direct use of the OpenAI class
+# from llama_index import ServiceContext, Document
+from llama_index.llms.openai import OpenAI as llamaOpenAI
+# from llama_index import SimpleDirectoryReader
+# from llama_index.indices.vector_store.base import VectorStoreIndex, ServiceContext
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
+# from llama_index.core import SimpleVectorIndex
+from llama_index.core import Document
+from prompts import *
 
-client = OpenAI()
-use_rag = False
-use_snippets = False
-use_pubmed = False
+# class Document:
+#     def __init__(self, text, doc_id):
+#         self.text = text
+#         self.id_ = doc_id  # Adjusted to match the expected 'id_' attribute
+#         self.hash = hash(text)  # Consider a more appropriate hash function for your use case
 
-@st.cache_data
-def pubmed_guidelines(search_terms, search_type):
-    # URL encoding
-    search_terms_encoded = requests.utils.quote(search_terms)
-
-    # Define the publication type filter based on the search_type parameter
-    if search_type == "all":
-        publication_type_filter = ""
-    elif search_type == "clinical trials":
-        publication_type_filter = "+AND+Clinical+Trial[Publication+Type]"
-    elif search_type == "guidelines":
-        publication_type_filter = "+AND+(Review[Publication+Type]+OR+Systematic+Review[Publication+Type])+OR+Guideline[Publication+Type]+OR+Meta-Analysis[Publication+Type]OR+Practice+Guideline[Publication+Type])"
-    else:
-        raise ValueError("Invalid search_type parameter. Use 'all', 'clinical trials', or 'reviews'.")
-
-    # Construct the search query with the publication type filter
-    search_query = f"{search_terms_encoded}{publication_type_filter}"
+#     # If get_doc_id is still required for other reasons, you can keep it
+#     # Otherwise, you can remove it if 'id_' is the only expected identifier
+#     def get_doc_id(self):
+#         return self.id_
     
-    # Query to get the top 20 results
-    url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term={search_query}&retmode=json&retmax=20&api_key={st.secrets['pubmed_api_key']}"
+
+
+st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
+
+def json_data_to_string(json_data):
+    """
+    Converts JSON data (Python dictionary or list) into a string representation.
+
+    Parameters:
+    - json_data: The JSON data as a Python object (typically a dictionary or list).
+
+    Returns:
+    - A string representation of the JSON data.
+    """
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        data = response.json()
-        
-        # Check if no results were returned, and if so, use a longer approach
-        if 'count' in data['esearchresult'] and int(data['esearchresult']['count']) == 0:
-            return st.write("No results found. Try a different search or try again after re-loading the page.")
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching search results: {e}")
-        return []
+        # Converting the JSON data to a string representation
+        data_as_string = json.dumps(json_data, indent=2)
+        return data_as_string
+    except Exception as e:
+        st.warning(f"An error occurred while converting JSON data to string: {e}")
+        return None
 
-    ids = data['esearchresult']['idlist']
-    articles = []
-    guideline_links = []
+def get_summary_from_qa(chain_type, summary_template):
+    with st.spinner("Generating summary for a custom chatbot"):
+        qa = RetrievalQA.from_chain_type(llm=llm, chain_type=chain_type, retriever=retriever, return_source_documents=True)
+        index_context = f'Use only the reference document for knowledge. Question: {summary_template}'
+        summary_for_chatbot = qa(index_context)
+        return summary_for_chatbot["result"]
 
-    for id in ids:
-        details_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id={id}&retmode=json&api_key={st.secrets['pubmed_api_key']}"
-        try:
-            details_response = requests.get(details_url)
-            details_response.raise_for_status()  # Raise an exception for HTTP errors
-            details = details_response.json()
-            if 'result' in details and str(id) in details['result']:
-                article = details['result'][str(id)]
-                link = f"https://pubmed.ncbi.nlm.nih.gov/{id}"
-                year = article['pubdate'].split(" ")[0]
-                if year.isdigit():
-                    guideline_links.append(link)
-                    articles.append({
-                        'title': article['title'],
-                        'year': year,
-                        'link': f"https://pubmed.ncbi.nlm.nih.gov/{id}"
-                    })
-            else:
-                st.warning(f"Details not available for ID {id}")
-        except requests.exceptions.RequestException as e:
-            st.error(f"Error fetching details for ID {id}: {e}")
-        time.sleep(1)  # Introduce a delay to avoid hitting rate limits only if there's an error
+def truncate_after_n_words(text, n=10000):
+    """
+    Truncate the text after n words.
 
-    # # Second query: Get the abstract texts for the top 10 results
-    # abstracts = []
-    # for id in ids:
-    #     abstract_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id={id}&retmode=text&rettype=abstract&api_key={st.secrets['pubmed_api_key']}"
-    #     try:
-    #         abstract_response = requests.get(abstract_url)
-    #         abstract_response.raise_for_status()  # Raise an exception for HTTP errors
-    #         abstract_text = abstract_response.text
-    #         if "API rate limit exceeded" not in abstract_text:
-    #             abstracts.append(abstract_text)
-    #         else:
-    #             st.warning(f"Rate limit exceeded when fetching abstract for ID {id}")
-    #     except requests.exceptions.RequestException as e:
-    #         st.error(f"Error fetching abstract for ID {id}: {e}")
-    #     time.sleep(1)  # Introduce a delay to avoid hitting rate limits only if there's an error
+    Parameters:
+    - text (str): The input text to truncate.
+    - n (int): The number of words to keep in the truncated text. Defaults to 10,000.
 
-    return articles, guideline_links
+    Returns:
+    - str: The truncated text.
+    """
+    words = text.split()  # Split the text into words
+    truncated_words = words[:n]  # Keep only the first n words
+    truncated_text = ' '.join(truncated_words)  # Reassemble the text from the first n words
+    return truncated_text
+
+# Function to load configuration either from Streamlit secrets or environment variables
+def load_config(keys):
+    # Check if running on Streamlit Cloud
+    if 'STREAMLIT_SHARING_MODE' in os.environ:
+        # Use Streamlit secrets
+        for key in keys:
+            config[key] = st.secrets.get(key)
+    else:
+        # Use environment variables
+        for key in keys:
+            config[key] = os.environ.get(key)
+
 
 def realtime_search(query, domains, max):
-    # st.write(f'here is the query: {query} and here are the domains: {domains} and here is the max: {max}')
-
     url = "https://real-time-web-search.p.rapidapi.com/search"
     
-    query = domains + " " + query
-
-    querystring = {"q":query,"limit":max}
+    # Combine domains and query
+    full_query = f"{domains} {query}"
+    querystring = {"q": full_query, "limit": max}
 
     headers = {
-        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
-        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
+        "X-RapidAPI-Key": config["X_RapidAPI_Key"],
+        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com",
     }
+
     urls = []
     snippets = []
-    response = requests.get(url, headers=headers, params=querystring)
-    # st.write(f'here is the full {response}')
-    response_data = response.json()
-    # st.write(response.json())
-    # st.write(f'here is the response data data {response["data"]}')
-    for item in response_data['data']:
-        urls.append(item['url'])   
-        snippets.append(f"{item['title']} {item['snippet']}  {item['url']}  <END OF SITE>" )
-    # st.write(urls)
-    # st.write(snippets)
+
+    try:
+        response = requests.get(url, headers=headers, params=querystring)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            response_data = response.json()
+            # st.write(response_data.get('data', []))
+            for item in response_data.get('data', []):
+                urls.append(item.get('url'))   
+                snippets.append(f"**{item.get('title')}**  \n*{item.get('snippet')}*  \n{item.get('url')} <END OF SITE>")
+
+        else:
+            st.error(f"Search failed with status code: {response.status_code}")
+            return [], []
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"RapidAPI real-time search failed to respond: {e}")
+        return [], []
+
     return snippets, urls
 
-    # print(response.json())
 
 @st.cache_data
 def extract_domains(domains):
@@ -158,7 +167,7 @@ def websearch_snippets(web_query: str, domains, max):
     url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
+        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
@@ -189,7 +198,7 @@ def websearch_snippets_old(web_query, domains, max):
     api_url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
+        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
@@ -278,21 +287,21 @@ def set_llm_chat(model, temperature):
         model = "gpt-3.5-turbo-16k"
     if model == "openai/gpt-4":
         model = "gpt-4"
-    if model == "openai/gpt-4-1106-preview":
-        model = "gpt-4-1106-preview"
-    if model == "gpt-4" or model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-4-1106-preview":
-        return ChatOpenAI(model=model, openai_api_base = "https://api.openai.com/v1/", openai_api_key = st.secrets["OPENAI_API_KEY"], temperature=temperature)
+    if model == "openai/gpt-4-turbo-preview":
+        model = "gpt-4-turbo-preview"
+    if model == "gpt-4" or model == "gpt-3.5-turbo"  or model == "gpt-4-turbo-preview":
+        return ChatOpenAI(model=model, openai_api_base = "https://api.openai.com/v1/", openai_api_key = config["OPENAI_API_KEY"], temperature=temperature)
     else:
-        headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
+        headers={ "HTTP-Referer": "https://my-ai-team.streamlit.app", # To identify your app
           "X-Title": "GPT and Med Ed"}
-        return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = st.secrets["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 500, headers=headers)
+        return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = config["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 1500, headers=headers)
 
 @st.cache_resource
 def create_retriever(texts):  
     
     embeddings = OpenAIEmbeddings(model = "text-embedding-ada-002",
                                   openai_api_base = "https://api.openai.com/v1/",
-                                  openai_api_key = st.secrets['OPENAI_API_KEY']
+                                  openai_api_key = config['OPENAI_API_KEY']
                                   )
     try:
         vectorstore = FAISS.from_texts(texts, embeddings)
@@ -303,28 +312,27 @@ def create_retriever(texts):
 
     return retriever
 
-# @st.cache_data
-# def split_texts(text, chunk_size, overlap, split_method):
+def split_texts(text, chunk_size, overlap, split_method):
+    text =  ''.join(text)
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size, chunk_overlap=overlap)
 
-#     text_splitter = RecursiveCharacterTextSplitter(
-#         chunk_size=chunk_size, chunk_overlap=overlap)
+    splits = text_splitter.split_text(text)
+    if not splits:
+        # st.error("Failed to split document")
+        st.stop()
 
-#     splits = text_splitter.split_text(text)
-#     if not splits:
-#         # st.error("Failed to split document")
-#         st.stop()
+    return splits
 
-#     return splits
-
-@st.cache_resource
-def prepare_rag(list, model):
-    # splits = split_texts(text, chunk_size=1000, overlap=100, split_method="recursive")
-    text = ' <END OF SITE> '.join(list)
-    splits = clean_and_split_html(text)
-    retriever = create_retriever(splits)
-    llm = set_llm_chat(model=model, temperature=0.3)
-    rag = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
-    return rag
+# @st.cache_resource
+# def prepare_rag(list, model):
+#     # splits = split_texts(text, chunk_size=1000, overlap=100, split_method="recursive")
+#     text = ' <END OF SITE> '.join(list)
+#     splits = clean_and_split_html(text)
+#     retriever = create_retriever(splits)
+#     llm = set_llm_chat(model=model, temperature=0.3)
+#     rag = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
+#     return rag
 
 @st.cache_data
 def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
@@ -344,22 +352,12 @@ def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
     url = "https://real-time-web-search.p.rapidapi.com/search"
     querystring = {"q":web_query,"limit":max}
     headers = {
-        "X_RapidAPI_Key": st.secrets["X_RapidAPI_Key"],
+        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
     }
 
     response = requests.get(url, headers=headers, params=querystring)
     response_data = response.json()
-    # response_data = join_and_clean_snippets(response_data.text)
-    # def display_search_results(json_data):
-    #     data = json_data['data']
-    #     for item in data:
-    #         st.sidebar.markdown(f"### [{item['title']}]({item['url']})")
-    #         st.sidebar.write(item['snippet'])
-    #         st.sidebar.write("---")
-    # st.info('Searching the web using: **{web_query}**')
-    # display_search_results(response_data)
-    # st.session_state.done = True
     urls = []
     snippets = []
     for item in response_data['data']:
@@ -388,7 +386,7 @@ def browserless(url_list, max):
     #     max = 5
     response_complete = []
     i = 0
-    key = st.secrets["BROWSERLESS_API_KEY"]
+    key = config["BROWSERLESS_API_KEY"]
     # api_url = f'https://chrome.browserless.io/content?token={key}&proxy=residential&proxyCountry=us&proxySticky'
     api_url = f'https://chrome.browserless.io/content?token={key}'
 
@@ -449,7 +447,7 @@ def scrapeninja(url_list, max):
     response_complete = []
     i = 0
     method = "POST"
-    key = st.secrets["X_RapidAPI_Key"]
+    key = config["X_RapidAPI_Key"]
     headers = {
         "content-type": "application/json",
         "X_RapidAPI_Key": key,
@@ -501,57 +499,52 @@ def scrapeninja(url_list, max):
     # return full_response
 
 @st.cache_data
-def reconcile(question, old, new, web_content):
+def reconcile(question, old, new, web_content, reconcile_prompt):
     # Send a message to the model asking it to summarize the text
-    response = client.chat.completions.create(
-        model="gpt-4-1106-preview",
-        messages=[
-            {"role": "system", "content": reconcile_prompt},
-            {"role": "user", "content": f' User question: {question} \n\n, prior answer 1" {old} \n\n, prior answer 2: {new} \n\n, web evidence: {web_content} \n\n'}
-        ]
-    )
+    openai.api_base = "https://api.openai.com/v1/"
+    openai.api_key = config['OPENAI_API_KEY']
+    truncated_web_content = truncate_after_n_words(web_content, 10000)
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4-turbo-preview",
+            messages=[
+                {"role": "system", "content": reconcile_prompt},
+                {"role": "user", "content": f' User question: {question} \n\n, prior answer 1" {old} \n\n, prior answer 2: {new} \n\n, web evidence: {truncated_web_content} \n\n'}
+            ]
+        )
+    except:
+        st.error("Error in reconciling the evidence.")
     # Return the content of the model's response
     return response.choices[0].message.content
 
-
-@st.cache_data
-def gpt_help(system_content, assistant_content, user_content, model):
-    # Send a message to the model asking it to summarize the text
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system_content},
-            {"role": "assistant", "content": assistant_content},
-            {"role": "user", "content": user_content}
-        ]
-    )
-    # Return the content of the model's response
-    return response.choices[0].message.content
 
 
 @st.cache_data
 def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperature, history_context, model, print = False):
-
+    if model == "openai/gpt-3.5-turbo-1106":
+        model = "gpt-3.5-turbo-1106"
     if model == "openai/gpt-3.5-turbo":
         model = "gpt-3.5-turbo"
     if model == "openai/gpt-3.5-turbo-16k":
         model = "gpt-3.5-turbo-16k"
     if model == "openai/gpt-4":
         model = "gpt-4"
+    if model == "openai/gpt-4-1106-preview":
+        model = "gpt-4-1106-preview"
     if history_context == None:
         history_context = ""
     messages = [{'role': 'system', 'content': prefix},
             {'role': 'user', 'content': sample_question},
             {'role': 'assistant', 'content': sample_answer},
             {'role': 'user', 'content': history_context + my_ask},]
-    if model == "gpt-4" or model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-4-1106-preview":
+    if model == "gpt-4" or model == "gpt-3.5-turbo" or model == "gpt-3.5-turbo-16k" or model == "gpt-4-1106-preview" or model == "gpt-3.5-turbo-1106":
         openai.api_base = "https://api.openai.com/v1/"
-        openai.api_key = st.secrets['OPENAI_API_KEY']
+        openai.api_key = config['OPENAI_API_KEY']
         response = client.chat.completions.create(
             model = model,
             messages = messages,
             temperature = temperature,
-            max_tokens = 500,
+            max_tokens = 1500,
             stream = False,   
         )
         response= response.choices[0].message.content
@@ -562,7 +555,7 @@ def answer_using_prefix(prefix, sample_question, sample_answer, my_ask, temperat
 
             # model = model,
             # messages = messages,
-            headers={"Authorization": "Bearer " + st.secrets["OPENROUTER_API_KEY"], # To identify your app
+            headers={"Authorization": "Bearer " + config["OPENROUTER_API_KEY"], # To identify your app
                     "Content-Type": "application/json",
                     "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
                     "X-Title": "GPT and Med Ed",
@@ -581,7 +574,7 @@ def check_password():
 
     def password_entered():
         """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
+        if st.session_state["password"] == config["password"]:
             st.session_state["password_correct"] = True
             del st.session_state["password"]  # don't store password
         else:
@@ -605,8 +598,21 @@ def check_password():
         # Password correct.
         return True
 
+
+
+st.title("My AI Team")
+with st.expander("Please read before using"):
+    st.write("This app is a demonstration of consensus approaches to answering clinical questions using AI. It is not intended for direct clinical use. Always validate answers independently before using them in clinical practice. This app is for educational purposes only.")
+    st.write("Author: David Liebovitz, MD")
+    
 if 'user_question' not in st.session_state:
     st.session_state['user_question'] = ''
+    
+if 'improved_question' not in st.session_state:
+    st.session_state['improved_question'] = ''
+    
+if 'final_question' not in st.session_state:
+    st.session_state['final_question'] = ''
     
 if 'model1_response' not in st.session_state:
     st.session_state['model1_response'] = ''
@@ -632,46 +638,96 @@ if 'domain_list' not in st.session_state:
 if 'snippets' not in st.session_state:
     st.session_state.snippets = []
     
-if 'articles' not in st.session_state:
-    st.session_state.articles = []
+# List of configuration keys expected in the secrets or environment variables
+keys = [
+    "password",
+    "OPENAI_API_KEY",
+    "X_RapidAPI_Key",
+    "X_USER_ID",
+    "OPENROUTER_API_KEY",
+    "pubmed_api_key",
+    "BROWSERLESS_API_KEY",
+    "S2_API_KEY"
+]
+
+# Initialize a dictionary to hold your configuration values
+config = {}    
+# Call the function to load the config
+load_config(keys)
+client = OpenAI()
+use_rag = False
+use_snippets = False
+only_links = False
+
+
+if st.secrets["use_docker"] == "True" or check_password():
+
+    # st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
+    # user_prompt = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
     
+    # Create the text input widget
+        # Create a button to clear the input field
+    
+    if st.session_state['user_question']:
+        if st.button('Clear input'):
+            # Clear the input field by setting its value in session_state to an empty string
+            st.session_state['user_question'] = ""
+    user_prompt = st.text_input("Enter your question for your AI team here; press enter to update:", value=st.session_state['user_question'])
 
-st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
-st.title("My AI Team")
-with st.expander("Please read before using"):
-    st.write("This app is a demonstration of consensus approaches to answering clinical questions using AI. It is not intended for clinical use.")
-    st.write("Author: David Liebovitz, MD")
+    # Update session_state with the input
+    st.session_state['user_question'] = user_prompt
 
 
 
-if check_password():
+        
+    if st.button("Improve my question!"):
 
+        improved_question = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt_improve_question},
+                {"role": "user", "content": user_prompt}
+            ],
+            stream=False,
+        )
+        st.session_state["improved_question"] = improved_question.choices[0].message.content
+    # Display the response from the API.
+    if st.session_state.improved_question:
+        st.text_area("Improved Question - edit below as needed. If editing, hit your CMD (or CTRL) + *return* key when done editing", st.session_state.improved_question, height=150, key="improved_question_text_area")
+    col1, col2 = st.columns(2)
+    with col1:
+        use_internet = st.checkbox("Also search for evidence", value=True)
+    with col2:
+        use_original = st.checkbox("Check to send your original version.")
+        if st.checkbox("Include Process Steps in Response"):
+            updated_reconcile_prompt = reconcile_prompt.format(formatting = full_formatting)
+        else:
+            updated_reconcile_prompt = reconcile_prompt.format(formatting = short_formatting)
 
-
-
-    st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
-    use_internet = st.checkbox("Add Internet Resources?")
+    
+    
     if use_internet:
         
-        search_method = st.radio("Web search method:", ("Guidelines from PubMed", "Web snippets from up to 10 webpages", "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages"))
-
-        if search_method == "Guidelines from PubMed":
-            use_pubmed = True
-        
-        if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages" or search_method == "Guidelines from PubMed":
-            scrape_method = st.radio("Web scraping method:", ("Browserless", "ScrapeNinja"))
-            use_rag = True
-            max = 5
-        if search_method == "Web snippets from up to 10 webpages":
-            use_snippets = True
-            max = 10
-        add_domains = st.checkbox("Add additional domains to search?")
-        if add_domains:
-            domain_to_add = st.text_input("Enter additional domains to the list of options (e.g. www.cdc.gov OR www.nih.gov):",)
-            if st.button("Add domain"):
-                st.session_state.domain_list.insert(0, domain_to_add)
-        with st.expander("Click to View Domains:", expanded=False):
-            domains_only = st.multiselect("Click after the last red one to see other options!", st.session_state.domain_list, default=default_domain_list)
+        with st.sidebar:
+            search_method = st.radio("Web content used:", ("Just display links", "Web snippets from up to 10 webpages", "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages"))
+            with st.expander("Internet Search Details:"):
+                if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages":
+                    scrape_method = st.radio("Web scraping method:", ("Browserless", "ScrapeNinja"))
+                    use_rag = True
+                    max = 5
+                if search_method == "Web snippets from up to 10 webpages" or search_method == "Just display links":
+                    use_snippets = True
+                    max = 10
+                if search_method == "Just display links":
+                    only_links = True
+                
+                add_domains = st.checkbox("Add additional domains to search?")
+                if add_domains:
+                    domain_to_add = st.text_input("Enter additional domains to the list of options (e.g. www.cdc.gov OR www.nih.gov):",)
+                    if st.button("Add domain"):
+                        st.session_state.domain_list.insert(0, domain_to_add)
+                
+                domains_only = st.multiselect("Click after the last red one to see other options!", st.session_state.domain_list, default=default_domain_list)
         domains = ' OR '.join(['site:' + domain for domain in domains_only])
         # st.write(domains)
         
@@ -683,51 +739,43 @@ if check_password():
         # max = 4
         # if use_rag:
         #     max = 9
-        
+    begin = st.button("Ask your question!")    
     st.info("Please select the models you would like to use to answer your question. The first two models will be used to generate answers, and the third model will be used to reconcile the two answers and any web search results.")
     st.warning("Please note this is a demo of late-breaking methods and there may be errors. Validate all answers independently before *thinking* of leveraging answers beyond just AI exploration.")
-    col1, col2 = st.columns(2)
 
-    with col1:
-        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=1)
-        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=5)
-        model3 = st.selectbox("Model 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-16k",  "openai/gpt-4", "openai/gpt-4-1106-preview", "anthropic/claude-instant-v1", "google/palm-2-chat-bison", "meta-llama/codellama-34b-instruct", "meta-llama/llama-2-70b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b"), index=3)
+    with st.sidebar.expander("Click to View Model Options:", expanded=False):
+        st.markdown("[Model Explanations](https://openrouter.ai/models)")
+        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
+        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=5)
+        model3 = st.selectbox("Reonciliation Model 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=1)
         if use_rag:
-            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-3.5-turbo-16k",  "gpt-4", "gpt-4-1106-preview"), index=3)
-    # model1 = "gpt-3.5-turbo"
-    # model2 = "gpt-3.5-turbo-16k"
-    # # model3 = "gpt-4-1106-preview"
-    # model3 = "undi95/toppy-m-7b"
+            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index=0)
 
-    begin = st.button("Ask")
 
     if begin:
-        if use_pubmed:
-            pubmed_query = gpt_help(system_prompt_pubmed, assistant_prompt_pubmed, st.session_state.user_question, "gpt-3.5-turbo")
-            st.write('Here is the pubmed query: ' + pubmed_query)
-            # try:
-            #     st.session_state.snippets, urls = realtime_search(st.session_state.user_question, domains, max)
-            #     # st.write(f'sending {st.session_state.user_question} to websearch_snippets')
+        if use_original:
+            st.session_state['final_question'] = user_prompt
+        else:
+            st.session_state['final_question'] = st.session_state.improved_question
+        if use_internet:
+            try:
 
+                st.session_state.snippets, urls = realtime_search(st.session_state.final_question, domains, max)
 
-        # """
-        # Main function to execute API calls concurrently.
-        # """
-        # Define the arguments for each function call
-        args1 = (prefix, '', '', st.session_state.user_question, 0.4, '', model1, False)
-        args2 = (prefix, '', '', st.session_state.user_question, 0.4, '', model2, False)
-        if use_snippets or use_rag:
-            args3 = (st.session_state.user_question, domains, max)
-        if use_pubmed:
-            args4 = (pubmed_query, "guidelines")
+            except:
+                st.error("Web search failed to respond; try again or uncheck internet searching.")
+                st.session_state.snippets = ["Web search failed to respond.", "Try again or uncheck internet searching."]
+
+        parallel_processing_question = st.session_state.final_question
+
+        args1 = (prefix, '', '', parallel_processing_question, 0.4, '', model1, False)
+        args2 = (prefix, '', '', parallel_processing_question, 0.4, '', model2, False)
+
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future1 = executor.submit(answer_using_prefix, *args1)
             future2 = executor.submit(answer_using_prefix, *args2)
-            if use_snippets or use_rag:
-                future3 = executor.submit(realtime_search, *args3)
-            if use_pubmed:
-                future4 = executor.submit(pubmed_query, *args4)
+            # future3 = executor.submit(realtime_search, *args3)
      
 
         
@@ -735,94 +783,118 @@ if check_password():
             
                 try:
                     model1_response = future1.result()
-                    st.session_state.model1_response = f'{model1} response:\n\n{model1_response}'
+                    model1_final = f'{model1} response:\n\n{model1_response}'
                     time1 = datetime.datetime.now()  # capture current time when process 1 finishes
+                    # st.session_state.model1_response = model1_final
                 except:
                     st.error("Model 1 failed to respond; consider changing.")
-                    model1_response = "Model 1 failed to respond."
+                    model1_final = "Model 1 failed to respond."
                 
                 try:
                     model2_response = future2.result()
-                    st.session_state.model2_response = f'{model2} response:\n\n{model2_response}'
+                    model2_final = f'{model2} response:\n\n{model2_response}'
                     time2 = datetime.datetime.now()  # capture current time when process 2 finishes
+                    # st.session_state.model2_response = model2_final
                 except:
                     st.error("Model 2 failed to respond; consider changing.")
-                    model2_response = "Model 2 failed to respond."
-                if use_rag or use_snippets:
-                    try:
-                        snippets, urls = future3.result()
-                        st.session_state.snippets = snippets
-                        time3 = datetime.datetime.now()  # capture current time when process 3 finishes
-                        
-                    except:
-                        st.error("Web Snippets failed to respond; consider unchecking internet.")
-                        st.session_state.snippets += "Model 2 failed to respond."
-                        
-                if use_pubmed:
-                    try:
-                        articles, links = future4.result()
-                        st.session_state.articles = articles
-                        time4 = datetime.datetime.now()  # capture current time when process 3 finishes
-                        
-                    except:
-                        st.error("No recent guidelines identified!")
-                        st.session_state.articles.append("No recent guidelines identified!")
-                        urls = []
+                    model2_final = "Model 2 failed to respond."
+
+                # try:
+                #     snippets, urls = future3.result()
+                #     st.session_state.snippets = snippets
+                #     time3 = datetime.datetime.now()  # capture current time when process 3 finishes
 
     
+        st.session_state.model1_response = model1_final
+        st.session_state.model2_response = model2_final
 
-        with col2:
-            with st.expander(f'Model 1 Response'):
-                st.write(st.session_state.model1_response)
-                
+        with st.expander(f'Model 1 Response'):
+            st.write(st.session_state.model1_response)
+            
 
-            with st.expander(f"Model 2 Response"):
-                st.write(st.session_state.model2_response)
-                
-            if use_snippets:
-                with st.expander(f"Web Snippets"):
-                    for snip in st.session_state.snippets:
-                        st.markdown(snip)
-            if use_pubmed:
-                with st.expander(f"Guidelines"):
-                    for article in st.session_state.articles:
-                        st.markdown(article)
-
-
-            if use_rag or use_pubmed: 
-                if urls != []:
-                    with st.spinner('Obtaining fulltext from web search results...'):
-                        if scrape_method != "Browserless":
-                            web_scrape_response = scrapeninja(urls, max) 
-                        if scrape_method == "Browserless":
-                            with st.expander("Webpages Scraped"):
-                                for url in urls:
-                                    st.write(url)
-                            web_scrape_response = browserless(urls, max)
-                        rag = prepare_rag(web_scrape_response, model4)                
-                    with st.spinner('Searching the vector database to assemble your answer...'):    
-                        evidence_response = rag(st.session_state.user_question)
-                        evidence_response = evidence_response["result"]
-                        st.session_state.ebm = f'Distilled RAG content from evidence:\n\n{evidence_response}'
+        with st.expander(f"Model 2 Response"):
+            st.write(st.session_state.model2_response)
+            
+        if use_snippets and only_links == False:
+            with st.expander(f"Web Snippets"):
+                for snip in st.session_state.snippets:
+                    snip = snip.replace('<END OF SITE>', '\n\n')
+                    st.markdown(snip)
                     
+        if only_links:
+            with st.expander(f"Helpful Links to Check!"):
+                st.warning("These are not sent to the LLM with this Links Only option and appear here for your review.")
+                for snip in st.session_state.snippets:
+                    snip = snip.replace('<END OF SITE>', '\n\n')
+                    st.markdown(snip)
+
+        if use_rag: 
+            with st.spinner('Obtaining fulltext from web search results...'):
+                if scrape_method != "Browserless":
+                    # web_scrape_response = scrapeninja(urls, max) 
+                    web_scrape_response = scrapeninja(urls, max) 
+                if scrape_method == "Browserless":
+                    with st.expander("Webpages Identified"):
+                        for url in urls:
+                            st.write(url)
+                    web_scrape_response = browserless(urls, max)
+                
+                web_scrape_string = json_data_to_string(web_scrape_response)
+                doc = Document(text=web_scrape_string, doc_id="Web Content")
+                
+                service_context = ServiceContext.from_defaults(llm=llamaOpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert on sorting out import content from the web."))
+                index = VectorStoreIndex.from_documents([doc], service_context=service_context)
+                
+                if "chat_engine" not in st.session_state.keys(): # Initialize the chat engine
+                    st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=True)
+                
+                response = st.session_state.chat_engine.chat(st.session_state.final_question)
+                with st.expander('Content retrieved from the RAG model:'):
+                    st.write(response.response)
+                
+                
+                
+                
+                # doc = Document(text=web_scrape_string, title="Web Content")
+                
+                # texts = split_texts(web_scrape_string, chunk_size=1250,
+                #                                 overlap=200, split_method="splitter_type")
 
                 
-            # else:
-            #     web_response = "No web search results included."
+                # vector_index = VectorStoreIndex.from_documents([doc], doc_id="Web Content")
+                
+                # vector_index = VectorStoreIndex.from_documents(web_scrape_string)
+                # vector_index.as_query_engine()
+                
+                # service_context = ServiceContext.from_defaults(llm=llamaOpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert understanding web content and distilling what is based on facts – do not hallucinate features."))
+                # index = VectorStoreIndex.from_documents(doc, service_context=service_context)
+                
+                # if "chat_engine" not in st.session_state.keys(): # Initialize the chat engine
+                #     st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=True)
+                
+                # rag_question = {"role": "user", "content": st.session_state.improved_question}
+                # response = vector_index.as_query_engine(rag_question, service_context=service_context)    
+                with st.spinner("Generating evidence summary"):
+                    # ebm_summary = get_summary_from_qa("stuff", rag_question)
+                    st.session_state.ebm = response.response
+            
+        # else:
+        #     web_response = "No web search results included."
 
-            if use_rag and st.session_state.ebm != '':
-                with st.expander('Content retrieved from the RAG model:'):
-                    st.markdown(st.session_state.ebm)   
+        if use_rag and st.session_state.ebm != '':
+            # with st.expander('Content retrieved from the RAG model:'):
+            with st.expander('Evidence Summary:'):
+                st.markdown(st.session_state.ebm)   
                        
-        if use_snippets:   
+        if use_snippets and only_links == False:   
             web_addition = ' <END OF SITE> '.join(st.session_state.snippets)
         elif use_rag:
             web_addition = st.session_state.ebm
         else:
             web_addition = ''       
 
-        final_answer = reconcile(st.session_state.user_question, model1_response, model2_response, web_addition)
-        st.session_state.final_response = f'{st.session_state.user_question}\n\nFinal Response from {model3}\n\n{final_answer}'
+        final_answer = reconcile(st.session_state.final_question, model1_response, model2_response, web_addition, updated_reconcile_prompt)
+        st.session_state.final_response = f'{st.session_state.final_question}\n\nFinal Response from {model3}\n\n{final_answer}'
         st.write(final_answer)
     
     with st.sidebar:
@@ -840,20 +912,13 @@ if check_password():
             with st.expander('Content retrieved from the RAG model'):
                 st.markdown(st.session_state.ebm)  
                 st.download_button('Download RAG Evidence Summary', st.session_state.ebm, f'rag.txt', 'text/txt')
-        if use_internet and not use_pubmed:
+        if use_internet:
             if use_snippets:
                 with st.expander(f"Web Search Content:"):                
                     st.markdown("Web Snippets:")
                     for snip in st.session_state.snippets:                    
                         st.markdown(snip) 
                     st.download_button('Download Web Snippets', str(st.session_state.snippets), f'web_snips.txt', 'text/txt')
-        if use_pubmed:
-            if st.session_state.snippets != []:
-                with st.expander(f"Guidelines Content:"):                
-                    st.markdown("Guidelines:")
-                    for snip in st.session_state.snippets:                    
-                        st.markdown(snip) 
-                    st.download_button('Download Guidelines', str(st.session_state.snippets), f'guidelines.txt', 'text/txt')
         if st.session_state.final_response != '':        
             with st.expander(f"Current Consensus Response"):
                 st.write(st.session_state.final_response)

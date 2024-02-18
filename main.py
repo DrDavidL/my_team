@@ -10,6 +10,7 @@ import streamlit as st
 from bs4 import BeautifulSoup
 # from langchain.chat_models import ChatOpenAI
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import RetrievalQA
 # from langchain.embeddings.openai import OpenAIEmbeddings
 # from langchain.vectorstores import FAISS
@@ -21,6 +22,29 @@ from prompts import *
 
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
+
+def get_summary_from_qa(chain_type, summary_template):
+    with st.spinner("Generating summary for a custom chatbot"):
+        qa = RetrievalQA.from_chain_type(llm=llm, chain_type=chain_type, retriever=retriever, return_source_documents=True)
+        index_context = f'Use only the reference document for knowledge. Question: {summary_template}'
+        summary_for_chatbot = qa(index_context)
+        return summary_for_chatbot["result"]
+
+def truncate_after_n_words(text, n=10000):
+    """
+    Truncate the text after n words.
+
+    Parameters:
+    - text (str): The input text to truncate.
+    - n (int): The number of words to keep in the truncated text. Defaults to 10,000.
+
+    Returns:
+    - str: The truncated text.
+    """
+    words = text.split()  # Split the text into words
+    truncated_words = words[:n]  # Keep only the first n words
+    truncated_text = ' '.join(truncated_words)  # Reassemble the text from the first n words
+    return truncated_text
 
 # Function to load configuration either from Streamlit secrets or environment variables
 def load_config(keys):
@@ -244,28 +268,27 @@ def create_retriever(texts):
 
     return retriever
 
-# @st.cache_data
-# def split_texts(text, chunk_size, overlap, split_method):
+def split_texts(text, chunk_size, overlap, split_method):
+    text =  ''.join(text)
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size, chunk_overlap=overlap)
 
-#     text_splitter = RecursiveCharacterTextSplitter(
-#         chunk_size=chunk_size, chunk_overlap=overlap)
+    splits = text_splitter.split_text(text)
+    if not splits:
+        # st.error("Failed to split document")
+        st.stop()
 
-#     splits = text_splitter.split_text(text)
-#     if not splits:
-#         # st.error("Failed to split document")
-#         st.stop()
+    return splits
 
-#     return splits
-
-@st.cache_resource
-def prepare_rag(list, model):
-    # splits = split_texts(text, chunk_size=1000, overlap=100, split_method="recursive")
-    text = ' <END OF SITE> '.join(list)
-    splits = clean_and_split_html(text)
-    retriever = create_retriever(splits)
-    llm = set_llm_chat(model=model, temperature=0.3)
-    rag = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
-    return rag
+# @st.cache_resource
+# def prepare_rag(list, model):
+#     # splits = split_texts(text, chunk_size=1000, overlap=100, split_method="recursive")
+#     text = ' <END OF SITE> '.join(list)
+#     splits = clean_and_split_html(text)
+#     retriever = create_retriever(splits)
+#     llm = set_llm_chat(model=model, temperature=0.3)
+#     rag = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
+#     return rag
 
 @st.cache_data
 def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
@@ -436,13 +459,17 @@ def reconcile(question, old, new, web_content, reconcile_prompt):
     # Send a message to the model asking it to summarize the text
     openai.api_base = "https://api.openai.com/v1/"
     openai.api_key = config['OPENAI_API_KEY']
-    response = client.chat.completions.create(
-        model="gpt-4-1106-preview",
-        messages=[
-            {"role": "system", "content": reconcile_prompt},
-            {"role": "user", "content": f' User question: {question} \n\n, prior answer 1" {old} \n\n, prior answer 2: {new} \n\n, web evidence: {web_content} \n\n'}
-        ]
-    )
+    truncated_web_content = truncate_after_n_words(web_content, 10000)
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4-turbo-preview",
+            messages=[
+                {"role": "system", "content": reconcile_prompt},
+                {"role": "user", "content": f' User question: {question} \n\n, prior answer 1" {old} \n\n, prior answer 2: {new} \n\n, web evidence: {truncated_web_content} \n\n'}
+            ]
+        )
+    except:
+        st.error("Error in reconciling the evidence.")
     # Return the content of the model's response
     return response.choices[0].message.content
 
@@ -678,7 +705,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=5)
         model3 = st.selectbox("Reonciliation Model 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=1)
         if use_rag:
-            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-3.5-turbo-16k",  "gpt-4", "gpt-4-1106-preview"), index=3)
+            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index=0)
 
 
     if begin:
@@ -766,19 +793,38 @@ if st.secrets["use_docker"] == "True" or check_password():
                         for url in urls:
                             st.write(url)
                     web_scrape_response = browserless(urls, max)
-                rag = prepare_rag(web_scrape_response, model4)                
-            with st.spinner('Searching the vector database to assemble your answer...'):    
-                evidence_response = rag(st.session_state.final_question)
-                evidence_response = evidence_response["result"]
-                st.session_state.ebm = f'Distilled RAG content from evidence:\n\n{evidence_response}'
-                
+                # rag = prepare_rag(web_scrape_response, model4)    
+                # st.warning("Note - with expanded context, full text available to model for processing.")            
+                # with st.spinner('Searching the vector database to assemble your answer...'):    
+                # evidence_response = rag(st.session_state.final_question)
+                # evidence_response = evidence_response["result"]
+                # st.session_state.ebm = f'Retrieved possible evidence:\n\n{web_scrape_response}'
+                texts = split_texts(web_scrape_response, chunk_size=1250,
+                                            overlap=200, split_method="splitter_type")
 
+                retriever = create_retriever(texts)
+
+                # openai.api_base = "https://openrouter.ai/api/v1"
+                # openai.api_key = st.secrets["OPENROUTER_API_KEY"]
+
+                llm = set_llm_chat(model="gpt-3.5-turbo", temperature=0.4)
+                # llm = ChatOpenAI(model_name='gpt-3.5-turbo-16k', openai_api_base = "https://api.openai.com/v1/")
+
+                qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=retriever, return_source_documents=False,)
+                
+                # Set the context for the subsequent chatbot conversation
+                rag_question = rag_prompt.format( question = st.session_state.final_question)
+                    
+                with st.spinner("Generating evidence summary"):
+                    ebm_summary = get_summary_from_qa("stuff", rag_question)
+                    st.session_state.ebm = ebm_summary
             
         # else:
         #     web_response = "No web search results included."
 
         if use_rag and st.session_state.ebm != '':
-            with st.expander('Content retrieved from the RAG model:'):
+            # with st.expander('Content retrieved from the RAG model:'):
+            with st.expander('Evidence Summary:'):
                 st.markdown(st.session_state.ebm)   
                        
         if use_snippets and only_links == False:   
