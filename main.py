@@ -8,10 +8,12 @@ from urllib.parse import urlparse, urlunparse
 import requests
 import streamlit as st
 from bs4 import BeautifulSoup
-from langchain.chat_models import ChatOpenAI
+# from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.chains import RetrievalQA
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+# from langchain.embeddings.openai import OpenAIEmbeddings
+# from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 import openai  # For accessing the openai module's functionalities
 from openai import OpenAI  # For direct use of the OpenAI class
 
