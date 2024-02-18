@@ -5,23 +5,67 @@ import os
 import time
 from urllib.parse import urlparse, urlunparse
 
+# from langchain.chains import AnalyzeDocumentChain
+# from langchain_openai import ChatOpenAI
+
+# from langchain.chains.question_answering import load_qa_chain
+
+# from langchain.chains import LLMChain
+# from langchain.prompts import PromptTemplate
+# from langchain_openai import OpenAI as LangChainOpenAI 
 import requests
 import streamlit as st
 from bs4 import BeautifulSoup
 # from langchain.chat_models import ChatOpenAI
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains import RetrievalQA
+# from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+# from langchain.text_splitter import RecursiveCharacterTextSplitter
+# from langchain.chains import RetrievalQA
 # from langchain.embeddings.openai import OpenAIEmbeddings
 # from langchain.vectorstores import FAISS
-from langchain_community.vectorstores import FAISS
+# from langchain_community.vectorstores import FAISS
 import openai  # For accessing the openai module's functionalities
 from openai import OpenAI  # For direct use of the OpenAI class
-
+# from llama_index import ServiceContext, Document
+from llama_index.llms.openai import OpenAI as llamaOpenAI
+# from llama_index import SimpleDirectoryReader
+# from llama_index.indices.vector_store.base import VectorStoreIndex, ServiceContext
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
+# from llama_index.core import SimpleVectorIndex
+from llama_index.core import Document
 from prompts import *
+
+# class Document:
+#     def __init__(self, text, doc_id):
+#         self.text = text
+#         self.id_ = doc_id  # Adjusted to match the expected 'id_' attribute
+#         self.hash = hash(text)  # Consider a more appropriate hash function for your use case
+
+#     # If get_doc_id is still required for other reasons, you can keep it
+#     # Otherwise, you can remove it if 'id_' is the only expected identifier
+#     def get_doc_id(self):
+#         return self.id_
+    
 
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
+
+def json_data_to_string(json_data):
+    """
+    Converts JSON data (Python dictionary or list) into a string representation.
+
+    Parameters:
+    - json_data: The JSON data as a Python object (typically a dictionary or list).
+
+    Returns:
+    - A string representation of the JSON data.
+    """
+    try:
+        # Converting the JSON data to a string representation
+        data_as_string = json.dumps(json_data, indent=2)
+        return data_as_string
+    except Exception as e:
+        st.warning(f"An error occurred while converting JSON data to string: {e}")
+        return None
 
 def get_summary_from_qa(chain_type, summary_template):
     with st.spinner("Generating summary for a custom chatbot"):
@@ -787,37 +831,52 @@ if st.secrets["use_docker"] == "True" or check_password():
         if use_rag: 
             with st.spinner('Obtaining fulltext from web search results...'):
                 if scrape_method != "Browserless":
+                    # web_scrape_response = scrapeninja(urls, max) 
                     web_scrape_response = scrapeninja(urls, max) 
                 if scrape_method == "Browserless":
                     with st.expander("Webpages Identified"):
                         for url in urls:
                             st.write(url)
                     web_scrape_response = browserless(urls, max)
-                # rag = prepare_rag(web_scrape_response, model4)    
-                # st.warning("Note - with expanded context, full text available to model for processing.")            
-                # with st.spinner('Searching the vector database to assemble your answer...'):    
-                # evidence_response = rag(st.session_state.final_question)
-                # evidence_response = evidence_response["result"]
-                # st.session_state.ebm = f'Retrieved possible evidence:\n\n{web_scrape_response}'
-                texts = split_texts(web_scrape_response, chunk_size=1250,
-                                            overlap=200, split_method="splitter_type")
-
-                retriever = create_retriever(texts)
-
-                # openai.api_base = "https://openrouter.ai/api/v1"
-                # openai.api_key = st.secrets["OPENROUTER_API_KEY"]
-
-                llm = set_llm_chat(model="gpt-3.5-turbo", temperature=0.4)
-                # llm = ChatOpenAI(model_name='gpt-3.5-turbo-16k', openai_api_base = "https://api.openai.com/v1/")
-
-                qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=retriever, return_source_documents=False,)
                 
-                # Set the context for the subsequent chatbot conversation
-                rag_question = rag_prompt.format( question = st.session_state.final_question)
-                    
+                web_scrape_string = json_data_to_string(web_scrape_response)
+                doc = Document(text=web_scrape_string, doc_id="Web Content")
+                
+                service_context = ServiceContext.from_defaults(llm=llamaOpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert on sorting out import content from the web."))
+                index = VectorStoreIndex.from_documents([doc], service_context=service_context)
+                
+                if "chat_engine" not in st.session_state.keys(): # Initialize the chat engine
+                    st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=True)
+                
+                response = st.session_state.chat_engine.chat(st.session_state.final_question)
+                with st.expander('Content retrieved from the RAG model:'):
+                    st.write(response.response)
+                
+                
+                
+                
+                # doc = Document(text=web_scrape_string, title="Web Content")
+                
+                # texts = split_texts(web_scrape_string, chunk_size=1250,
+                #                                 overlap=200, split_method="splitter_type")
+
+                
+                # vector_index = VectorStoreIndex.from_documents([doc], doc_id="Web Content")
+                
+                # vector_index = VectorStoreIndex.from_documents(web_scrape_string)
+                # vector_index.as_query_engine()
+                
+                # service_context = ServiceContext.from_defaults(llm=llamaOpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert understanding web content and distilling what is based on facts – do not hallucinate features."))
+                # index = VectorStoreIndex.from_documents(doc, service_context=service_context)
+                
+                # if "chat_engine" not in st.session_state.keys(): # Initialize the chat engine
+                #     st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=True)
+                
+                # rag_question = {"role": "user", "content": st.session_state.improved_question}
+                # response = vector_index.as_query_engine(rag_question, service_context=service_context)    
                 with st.spinner("Generating evidence summary"):
-                    ebm_summary = get_summary_from_qa("stuff", rag_question)
-                    st.session_state.ebm = ebm_summary
+                    # ebm_summary = get_summary_from_qa("stuff", rag_question)
+                    st.session_state.ebm = response.response
             
         # else:
         #     web_response = "No web search results included."
