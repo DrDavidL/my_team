@@ -586,7 +586,7 @@ use_rag = False
 use_snippets = False
 
 
-if check_password():
+if st.secrets["use_docker"] == "True" or check_password():
 
     # st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
     # user_prompt = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
@@ -676,12 +676,7 @@ if check_password():
         model3 = st.selectbox("Reonciliation Model 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=1)
         if use_rag:
             model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-3.5-turbo-16k",  "gpt-4", "gpt-4-1106-preview"), index=3)
-# model1 = "gpt-3.5-turbo"
-# model2 = "gpt-3.5-turbo-16k"
-# # model3 = "gpt-4-1106-preview"
-# model3 = "undi95/toppy-m-7b"
 
-        
 
     if begin:
         if use_original:
@@ -690,22 +685,17 @@ if check_password():
             st.session_state['final_question'] = st.session_state.improved_question
         if use_internet:
             try:
-                # st.write("trying to get websnippets")
-                # snips, urls = realtime_search("what is a black hole", domains, max)
-                # st.write(snips)
-                # st.write(f'Sending {st.session_state.user_question} and {domains} with max of {max} to websearch_snippets')
+
                 st.session_state.snippets, urls = realtime_search(st.session_state.final_question, domains, max)
-                # st.write(f'sending {st.session_state.user_question} to websearch_snippets')
+
             except:
                 st.error("Web search failed to respond; try again or uncheck internet searching.")
                 st.session_state.snippets = ["Web search failed to respond.", "Try again or uncheck internet searching."]
 
-        # """
-        # Main function to execute API calls concurrently.
-        # """
-        # Define the arguments for each function call
-        args1 = (prefix, '', '', st.session_state.final_question, 0.4, '', model1, False)
-        args2 = (prefix, '', '', st.session_state.final_question, 0.4, '', model2, False)
+        parallel_processing_question = st.session_state.final_question
+
+        args1 = (prefix, '', '', parallel_processing_question, 0.4, '', model1, False)
+        args2 = (prefix, '', '', parallel_processing_question, 0.4, '', model2, False)
 
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -719,19 +709,21 @@ if check_password():
             
                 try:
                     model1_response = future1.result()
-                    st.session_state.model1_response = f'{model1} response:\n\n{model1_response}'
+                    model1_final = f'{model1} response:\n\n{model1_response}'
                     time1 = datetime.datetime.now()  # capture current time when process 1 finishes
+                    # st.session_state.model1_response = model1_final
                 except:
                     st.error("Model 1 failed to respond; consider changing.")
-                    model1_response = "Model 1 failed to respond."
+                    model1_final = "Model 1 failed to respond."
                 
                 try:
                     model2_response = future2.result()
-                    st.session_state.model2_response = f'{model2} response:\n\n{model2_response}'
+                    model2_final = f'{model2} response:\n\n{model2_response}'
                     time2 = datetime.datetime.now()  # capture current time when process 2 finishes
+                    # st.session_state.model2_response = model2_final
                 except:
                     st.error("Model 2 failed to respond; consider changing.")
-                    model2_response = "Model 2 failed to respond."
+                    model2_final = "Model 2 failed to respond."
 
                 # try:
                 #     snippets, urls = future3.result()
@@ -739,7 +731,8 @@ if check_password():
                 #     time3 = datetime.datetime.now()  # capture current time when process 3 finishes
 
     
-
+        st.session_state.model1_response = model1_final
+        st.session_state.model2_response = model2_final
 
         with st.expander(f'Model 1 Response'):
             st.write(st.session_state.model1_response)
@@ -756,6 +749,7 @@ if check_password():
                     
         if only_links:
             with st.expander(f"Helpful Links to Check!"):
+                st.warning("These are not sent to the LLM with this Links Only option and appear here for your review.")
                 for snip in st.session_state.snippets:
                     snip = snip.replace('<END OF SITE>', '\n\n')
                     st.markdown(snip)
