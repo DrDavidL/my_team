@@ -584,6 +584,7 @@ load_config(keys)
 client = OpenAI()
 use_rag = False
 use_snippets = False
+only_links = False
 
 
 if st.secrets["use_docker"] == "True" or check_password():
