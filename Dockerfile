@@ -1,7 +1,7 @@
 # app/Dockerfile
 
 # Use Python 3.9 slim image as the base image
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 # Set the working directory to /my_team within the container
 WORKDIR /my_team
@@ -20,6 +20,8 @@ COPY prompts_docker.py ./
 # If there are other files or directories to include, add them here
 # COPY other_file.py ./
 # COPY your_directory/ ./your_directory/
+copy .streamlit/ .streamlit/
+
 
 # Expose port 8501 for Streamlit
 EXPOSE 8501
