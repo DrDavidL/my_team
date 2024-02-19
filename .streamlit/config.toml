@@ -3,3 +3,7 @@ runOnSave = true
 enableStaticServing = true
 enableXsrfProtection = false
 enableCORS = false
+
+[theme]
+base="light"
+primaryColor="purple"
