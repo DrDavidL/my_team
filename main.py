@@ -5,50 +5,21 @@ import os
 import time
 from urllib.parse import urlparse, urlunparse
 
-# from langchain.chains import AnalyzeDocumentChain
-# from langchain_openai import ChatOpenAI
-
-# from langchain.chains.question_answering import load_qa_chain
-
-# from langchain.chains import LLMChain
-# from langchain.prompts import PromptTemplate
-# from langchain_openai import OpenAI as LangChainOpenAI 
 import requests
 import streamlit as st
 from bs4 import BeautifulSoup
-# from langchain.chat_models import ChatOpenAI
-# from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-# from langchain.text_splitter import RecursiveCharacterTextSplitter
-# from langchain.chains import RetrievalQA
-# from langchain.embeddings.openai import OpenAIEmbeddings
-# from langchain.vectorstores import FAISS
-# from langchain_community.vectorstores import FAISS
 import openai  # For accessing the openai module's functionalities
 from openai import OpenAI  # For direct use of the OpenAI class
-# from llama_index import ServiceContext, Document
 from llama_index.llms.openai import OpenAI as llamaOpenAI
-# from llama_index import SimpleDirectoryReader
-# from llama_index.indices.vector_store.base import VectorStoreIndex, ServiceContext
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
-# from llama_index.core import SimpleVectorIndex
 from llama_index.core import Document
 from prompts import *
-
-# class Document:
-#     def __init__(self, text, doc_id):
-#         self.text = text
-#         self.id_ = doc_id  # Adjusted to match the expected 'id_' attribute
-#         self.hash = hash(text)  # Consider a more appropriate hash function for your use case
-
-#     # If get_doc_id is still required for other reasons, you can keep it
-#     # Otherwise, you can remove it if 'id_' is the only expected identifier
-#     def get_doc_id(self):
-#         return self.id_
-    
-
+ 
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 
+
+@st.cache_data
 def json_data_to_string(json_data):
     """
     Converts JSON data (Python dictionary or list) into a string representation.
@@ -67,13 +38,14 @@ def json_data_to_string(json_data):
         st.warning(f"An error occurred while converting JSON data to string: {e}")
         return None
 
-def get_summary_from_qa(chain_type, summary_template):
-    with st.spinner("Generating summary for a custom chatbot"):
-        qa = RetrievalQA.from_chain_type(llm=llm, chain_type=chain_type, retriever=retriever, return_source_documents=True)
-        index_context = f'Use only the reference document for knowledge. Question: {summary_template}'
-        summary_for_chatbot = qa(index_context)
-        return summary_for_chatbot["result"]
+# def get_summary_from_qa(chain_type, summary_template):
+#     with st.spinner("Generating summary for a custom chatbot"):
+#         qa = RetrievalQA.from_chain_type(llm=llm, chain_type=chain_type, retriever=retriever, return_source_documents=True)
+#         index_context = f'Use only the reference document for knowledge. Question: {summary_template}'
+#         summary_for_chatbot = qa(index_context)
+#         return summary_for_chatbot["result"]
 
+@st.cache_data
 def truncate_after_n_words(text, n=10000):
     """
     Truncate the text after n words.
@@ -102,7 +74,7 @@ def load_config(keys):
         for key in keys:
             config[key] = os.environ.get(key)
 
-
+@st.cache_data
 def realtime_search(query, domains, max):
     url = "https://real-time-web-search.p.rapidapi.com/search"
     
@@ -158,6 +130,7 @@ def extract_domains(domains):
     domain_names = [site.replace('site:', '') for site in sites]
 
     return domain_names
+
 @st.cache_data
 def websearch_snippets(web_query: str, domains, max):
 
@@ -279,50 +252,50 @@ def clean_and_split_html(full_html, separator=' <END OF SITE> '):
 
     return all_paragraphs
 
-@st.cache_resource
-def set_llm_chat(model, temperature):
-    if model == "openai/gpt-3.5-turbo":
-        model = "gpt-3.5-turbo"
-    if model == "openai/gpt-3.5-turbo-16k":
-        model = "gpt-3.5-turbo-16k"
-    if model == "openai/gpt-4":
-        model = "gpt-4"
-    if model == "openai/gpt-4-turbo-preview":
-        model = "gpt-4-turbo-preview"
-    if model == "gpt-4" or model == "gpt-3.5-turbo"  or model == "gpt-4-turbo-preview":
-        return ChatOpenAI(model=model, openai_api_base = "https://api.openai.com/v1/", openai_api_key = config["OPENAI_API_KEY"], temperature=temperature)
-    else:
-        headers={ "HTTP-Referer": "https://my-ai-team.streamlit.app", # To identify your app
-          "X-Title": "GPT and Med Ed"}
-        return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = config["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 1500, headers=headers)
+# @st.cache_resource
+# def set_llm_chat(model, temperature):
+#     if model == "openai/gpt-3.5-turbo":
+#         model = "gpt-3.5-turbo"
+#     if model == "openai/gpt-3.5-turbo-16k":
+#         model = "gpt-3.5-turbo-16k"
+#     if model == "openai/gpt-4":
+#         model = "gpt-4"
+#     if model == "openai/gpt-4-turbo-preview":
+#         model = "gpt-4-turbo-preview"
+#     if model == "gpt-4" or model == "gpt-3.5-turbo"  or model == "gpt-4-turbo-preview":
+#         return ChatOpenAI(model=model, openai_api_base = "https://api.openai.com/v1/", openai_api_key = config["OPENAI_API_KEY"], temperature=temperature)
+#     else:
+#         headers={ "HTTP-Referer": "https://my-ai-team.streamlit.app", # To identify your app
+#           "X-Title": "GPT and Med Ed"}
+#         return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = config["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 1500, headers=headers)
 
-@st.cache_resource
-def create_retriever(texts):  
+# @st.cache_resource
+# def create_retriever(texts):  
     
-    embeddings = OpenAIEmbeddings(model = "text-embedding-ada-002",
-                                  openai_api_base = "https://api.openai.com/v1/",
-                                  openai_api_key = config['OPENAI_API_KEY']
-                                  )
-    try:
-        vectorstore = FAISS.from_texts(texts, embeddings)
-    except (IndexError, ValueError) as e:
-        st.error(f"Error creating vectorstore: {e}")
-        return
-    retriever = vectorstore.as_retriever(k=5)
+#     embeddings = OpenAIEmbeddings(model = "text-embedding-ada-002",
+#                                   openai_api_base = "https://api.openai.com/v1/",
+#                                   openai_api_key = config['OPENAI_API_KEY']
+#                                   )
+#     try:
+#         vectorstore = FAISS.from_texts(texts, embeddings)
+#     except (IndexError, ValueError) as e:
+#         st.error(f"Error creating vectorstore: {e}")
+#         return
+#     retriever = vectorstore.as_retriever(k=5)
 
-    return retriever
+#     return retriever
 
-def split_texts(text, chunk_size, overlap, split_method):
-    text =  ''.join(text)
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size, chunk_overlap=overlap)
+# def split_texts(text, chunk_size, overlap, split_method):
+#     text =  ''.join(text)
+#     text_splitter = RecursiveCharacterTextSplitter(
+#         chunk_size=chunk_size, chunk_overlap=overlap)
 
-    splits = text_splitter.split_text(text)
-    if not splits:
-        # st.error("Failed to split document")
-        st.stop()
+#     splits = text_splitter.split_text(text)
+#     if not splits:
+#         # st.error("Failed to split document")
+#         st.stop()
 
-    return splits
+#     return splits
 
 # @st.cache_resource
 # def prepare_rag(list, model):
@@ -334,49 +307,49 @@ def split_texts(text, chunk_size, overlap, split_method):
 #     rag = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
 #     return rag
 
-@st.cache_data
-def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
-    """
-    Obtains real-time search results from across the internet. 
-    Supports all Google Advanced Search operators such (e.g. inurl:, site:, intitle:, etc).
+# @st.cache_data
+# def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
+#     """
+#     Obtains real-time search results from across the internet. 
+#     Supports all Google Advanced Search operators such (e.g. inurl:, site:, intitle:, etc).
     
-    :param web_query: A search query, including any Google Advanced Search operators
-    :type web_query: string
-    :return: A list of search results
-    :rtype: json
+#     :param web_query: A search query, including any Google Advanced Search operators
+#     :type web_query: string
+#     :return: A list of search results
+#     :rtype: json
     
-    """
+#     """
     
-    web_query = domains + " " + web_query
-    # st.info(f'Here is the websearch input: **{web_query}**')
-    url = "https://real-time-web-search.p.rapidapi.com/search"
-    querystring = {"q":web_query,"limit":max}
-    headers = {
-        "X_RapidAPI_Key": config["X_RapidAPI_Key"],
-        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
-    }
+#     web_query = domains + " " + web_query
+#     # st.info(f'Here is the websearch input: **{web_query}**')
+#     url = "https://real-time-web-search.p.rapidapi.com/search"
+#     querystring = {"q":web_query,"limit":max}
+#     headers = {
+#         "X_RapidAPI_Key": config["X_RapidAPI_Key"],
+#         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
+#     }
 
-    response = requests.get(url, headers=headers, params=querystring)
-    response_data = response.json()
-    urls = []
-    snippets = []
-    for item in response_data['data']:
-        urls.append(item['url'])   
-        snippets.append(item['snippet'])
-    if retrieval == "fulltext" or retrieval == "RAG":
-            # st.write(item['url'])
-        if scrape_method != "Browserless":
-            response_data = scrapeninja(urls, max)
-        else:
-            response_data = browserless(urls, max)
-        # st.info("Web results reviewed.")
-        return response_data, urls
+#     response = requests.get(url, headers=headers, params=querystring)
+#     response_data = response.json()
+#     urls = []
+#     snippets = []
+#     for item in response_data['data']:
+#         urls.append(item['url'])   
+#         snippets.append(item['snippet'])
+#     if retrieval == "fulltext" or retrieval == "RAG":
+#             # st.write(item['url'])
+#         if scrape_method != "Browserless":
+#             response_data = scrapeninja(urls, max)
+#         else:
+#             response_data = browserless(urls, max)
+#         # st.info("Web results reviewed.")
+#         return response_data, urls
 
-    else:
-        # st.info("Web snippets reviewed.")
-        st.write(f'HERE IS THE SNIPPETS RESPONSE: {response_data}')
-        response_data = join_and_clean_snippets(response_data["data"])
-        return response_data, urls
+#     else:
+#         # st.info("Web snippets reviewed.")
+#         st.write(f'HERE IS THE SNIPPETS RESPONSE: {response_data}')
+#         response_data = join_and_clean_snippets(response_data["data"])
+#         return response_data, urls
     
 @st.cache_data
 def browserless(url_list, max):
@@ -431,12 +404,12 @@ def browserless(url_list, max):
     # st.write(f'Here is the lmited text: {limited_text}')
     return full_response
 
-@st.cache_data
-def limit_tokens(text, max_tokens=10000):
-    tokens = text.split()  # split the text into tokens (words)
-    limited_tokens = tokens[:max_tokens]  # keep the first max_tokens tokens
-    limited_text = ' '.join(limited_tokens)  # join the tokens back into a string
-    return limited_text
+# @st.cache_data
+# def limit_tokens(text, max_tokens=10000):
+#     tokens = text.split()  # split the text into tokens (words)
+#     limited_tokens = tokens[:max_tokens]  # keep the first max_tokens tokens
+#     limited_text = ' '.join(limited_tokens)  # join the tokens back into a string
+#     return limited_text
 
 @st.cache_data
 def scrapeninja(url_list, max):
@@ -499,17 +472,17 @@ def scrapeninja(url_list, max):
     # return full_response
 
 @st.cache_data
-def reconcile(question, old, new, web_content, reconcile_prompt):
+def reconcile(question, model, old, new, web_content, reconcile_prompt):
     # Send a message to the model asking it to summarize the text
     openai.api_base = "https://api.openai.com/v1/"
     openai.api_key = config['OPENAI_API_KEY']
-    truncated_web_content = truncate_after_n_words(web_content, 10000)
+    # truncated_web_content = truncate_after_n_words(web_content, 10000)
     try:
         response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",
+            model= model,
             messages=[
                 {"role": "system", "content": reconcile_prompt},
-                {"role": "user", "content": f' User question: {question} \n\n, prior answer 1" {old} \n\n, prior answer 2: {new} \n\n, web evidence: {truncated_web_content} \n\n'}
+                {"role": "user", "content": f' User question: {question} \n\n, prior answer 1" {old} \n\n, prior answer 2: {new} \n\n, web evidence: {web_content} \n\n'}
             ]
         )
     except:
@@ -661,17 +634,12 @@ only_links = False
 
 
 if st.secrets["use_docker"] == "True" or check_password():
-
-    # st.session_state['user_question'] = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
-    # user_prompt = st.text_input("Enter your question for your AI team here:", st.session_state['user_question'])
-    
-    # Create the text input widget
-        # Create a button to clear the input field
     
     if st.session_state['user_question']:
         if st.button('Clear input'):
             # Clear the input field by setting its value in session_state to an empty string
             st.session_state['user_question'] = ""
+            
     user_prompt = st.text_input("Enter your question for your AI team here; press enter to update:", value=st.session_state['user_question'])
 
     # Update session_state with the input
@@ -699,7 +667,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         use_internet = st.checkbox("Also search for evidence", value=True)
     with col2:
         use_original = st.checkbox("Check to send your original version.")
-        if st.checkbox("Include Process Steps in Response"):
+        if st.checkbox("Show Process Steps in Final Response"):
             updated_reconcile_prompt = reconcile_prompt.format(formatting = full_formatting)
         else:
             updated_reconcile_prompt = reconcile_prompt.format(formatting = short_formatting)
@@ -729,6 +697,8 @@ if st.secrets["use_docker"] == "True" or check_password():
                 
                 domains_only = st.multiselect("Click after the last red one to see other options!", st.session_state.domain_list, default=default_domain_list)
         domains = ' OR '.join(['site:' + domain for domain in domains_only])
+        if use_rag:
+            st.warning("RAG is using on the fly web scraping and processing that may take a couple minutes for the final answer.")
         # st.write(domains)
         
         # with st.expander("Domains used with web search:"):
@@ -747,7 +717,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         st.markdown("[Model Explanations](https://openrouter.ai/models)")
         model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
         model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=5)
-        model3 = st.selectbox("Reonciliation Model 3 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=1)
+        model3 = st.selectbox("Reonciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index = 1)
         if use_rag:
             model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index=0)
 
@@ -816,14 +786,14 @@ if st.secrets["use_docker"] == "True" or check_password():
             st.write(st.session_state.model2_response)
             
         if use_snippets and only_links == False:
-            with st.expander(f"Web Snippets"):
+            with st.expander(f"Web Snippets Sent to the LLM:"):
                 for snip in st.session_state.snippets:
                     snip = snip.replace('<END OF SITE>', '\n\n')
                     st.markdown(snip)
                     
         if only_links:
-            with st.expander(f"Helpful Links to Check!"):
-                st.warning("These are not sent to the LLM with this Links Only option and appear here for your review.")
+            with st.expander(f"Additional Links for you!"):
+                st.warning("These are not sent to the LLM with this 'Links Only' option and appear here for your review.")
                 for snip in st.session_state.snippets:
                     snip = snip.replace('<END OF SITE>', '\n\n')
                     st.markdown(snip)
@@ -834,57 +804,32 @@ if st.secrets["use_docker"] == "True" or check_password():
                     # web_scrape_response = scrapeninja(urls, max) 
                     web_scrape_response = scrapeninja(urls, max) 
                 if scrape_method == "Browserless":
-                    with st.expander("Webpages Identified"):
-                        for url in urls:
-                            st.write(url)
                     web_scrape_response = browserless(urls, max)
                 
                 web_scrape_string = json_data_to_string(web_scrape_response)
                 doc = Document(text=web_scrape_string, doc_id="Web Content")
                 
-                service_context = ServiceContext.from_defaults(llm=llamaOpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert on sorting out import content from the web."))
+                service_context = ServiceContext.from_defaults(llm=llamaOpenAI(model=model4, temperature=0.5, system_prompt="You are an expert at extracting accurate information from web content."))
                 index = VectorStoreIndex.from_documents([doc], service_context=service_context)
                 
                 if "chat_engine" not in st.session_state.keys(): # Initialize the chat engine
-                    st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=True)
+                    st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=False)
                 
                 response = st.session_state.chat_engine.chat(st.session_state.final_question)
-                with st.expander('Content retrieved from the RAG model:'):
+                with st.expander('Sources and Generated Summary Using the Web:'):          
+                    st.write("These are the sources used for the RAG model:")
+                    for url in urls:
+                        st.write(url)
+                    st.write("Here is the answer according to the RAG processed web content:")    
                     st.write(response.response)
-                
-                
-                
-                
-                # doc = Document(text=web_scrape_string, title="Web Content")
-                
-                # texts = split_texts(web_scrape_string, chunk_size=1250,
-                #                                 overlap=200, split_method="splitter_type")
-
-                
-                # vector_index = VectorStoreIndex.from_documents([doc], doc_id="Web Content")
-                
-                # vector_index = VectorStoreIndex.from_documents(web_scrape_string)
-                # vector_index.as_query_engine()
-                
-                # service_context = ServiceContext.from_defaults(llm=llamaOpenAI(model="gpt-3.5-turbo", temperature=0.5, system_prompt="You are an expert understanding web content and distilling what is based on facts – do not hallucinate features."))
-                # index = VectorStoreIndex.from_documents(doc, service_context=service_context)
-                
-                # if "chat_engine" not in st.session_state.keys(): # Initialize the chat engine
-                #     st.session_state.chat_engine = index.as_chat_engine(chat_mode="condense_question", verbose=True)
-                
-                # rag_question = {"role": "user", "content": st.session_state.improved_question}
-                # response = vector_index.as_query_engine(rag_question, service_context=service_context)    
-                with st.spinner("Generating evidence summary"):
-                    # ebm_summary = get_summary_from_qa("stuff", rag_question)
                     st.session_state.ebm = response.response
             
-        # else:
-        #     web_response = "No web search results included."
 
-        if use_rag and st.session_state.ebm != '':
-            # with st.expander('Content retrieved from the RAG model:'):
-            with st.expander('Evidence Summary:'):
-                st.markdown(st.session_state.ebm)   
+
+        # if use_rag and st.session_state.ebm != '':
+        #     # with st.expander('Content retrieved from the RAG model:'):
+        #     with st.expander('Evidence Summary sent to the LLM:'):
+        #         st.markdown(st.session_state.ebm)   
                        
         if use_snippets and only_links == False:   
             web_addition = ' <END OF SITE> '.join(st.session_state.snippets)
@@ -893,7 +838,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         else:
             web_addition = ''       
 
-        final_answer = reconcile(st.session_state.final_question, model1_response, model2_response, web_addition, updated_reconcile_prompt)
+        final_answer = reconcile(st.session_state.final_question, model3, model1_response, model2_response, web_addition, updated_reconcile_prompt)
         st.session_state.final_response = f'{st.session_state.final_question}\n\nFinal Response from {model3}\n\n{final_answer}'
         st.write(final_answer)
     
