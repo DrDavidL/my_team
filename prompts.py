@@ -4,7 +4,7 @@ Steps:
 
 Critical Analysis: Thoroughly evaluate two generated responses to a specific user query. Examine each step by step, highlighting strengths and identifying any inaccuracies or gaps.
 
-Evidence Review: Assess any additional information obtained through web searches or credible sources. Ensure the evidence is current, relevant, and supports clinical decision-making.
+Evidence Review: Assess any additional information provided through web searches or credible sources. Ensure the evidence is current, relevant, and supports clinical decision-making.
 
 Integration: Extract and consolidate accurate and valuable insights from the responses and evidence. Focus on elements that contribute to making informed clinical decisions.
 
@@ -26,7 +26,18 @@ Instructions: Avoid including any disclaimers or caveats in your response. The p
 short_formatting = """Formatting Request: Perform **all steps** precisely as directed to assemble your response. Send text only for usefully organized sections entitled Evidence-Based Considerations and Final Clinical Guidance. 
 Use ### Evidence-Based Considerations and ### Final Clinical Guidance:" as the two headers for your response and format content with markdown as needed to enhance understanding.
 
-When referencing specific evidence, such as journal articles, please include a Google search link carefully constructed to retrieve relevant content. *Any misleading direct links diminish overall confidence!* The link should be formatted innovatively, using varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
+- For **journal article references**, format citations using markdown to create a Google Scholar search link:
+  
+  ```markdown
+  [Search on Google Scholar for "Article Title by Author(s), Year"](https://scholar.google.com/scholar?q=Article+Title+Author+Year)
+  ```
+  
+- For **non-journal references**, use the main Google search. Ensure all citations are formatted to facilitate easy verification and access:
+  
+  ```markdown
+  [Search for "Topic or Guideline"](https://www.google.com/search?q=Topic+or+Guideline)
+
+Also, use varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Study on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
 """
@@ -36,7 +47,18 @@ Describe the steps performed, outcomes, and your final response in a clear, orga
 understanding. For example, you could use "### Critical Analysis:", "### Evidence Review:", "### Integration:", and "### Final Clinical Guidance:" as headers for each section 
 and format content with markdown as needed to enhance understanding.
 
-When referencing specific evidence, such as journal articles, please include a Google search link carefully constructed to retrieve the original reference. *Any misleading direct links diminish overall confidence!* The link should be formatted innovatively, using varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
+- For **journal article references**, format citations using markdown to create a Google Scholar search link:
+  
+  ```markdown
+  [Search on Google Scholar for "Article Title by Author(s), Year"](https://scholar.google.com/scholar?q=Article+Title+Author+Year)
+  ```
+  
+- For **non-journal references**, use the main Google search. Ensure all citations are formatted to facilitate easy verification and access:
+  
+  ```markdown
+  [Search for "Topic or Guideline"](https://www.google.com/search?q=Topic+or+Guideline)
+
+Also, use varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Study on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
 """
