@@ -40,6 +40,8 @@ Use ### Evidence-Based Considerations and ### Final Clinical Guidance:" as the t
 Also, use varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Study on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
+
+***If you do not know the specific reference(s), but believe one or more exists, use Google Scholar to format a topic based link for the user to search.***
 """
 
 full_formatting =  """Formatting Request: 
@@ -61,6 +63,8 @@ and format content with markdown as needed to enhance understanding.
 Also, use varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Study on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
+
+***If you do not know the specific reference, but believe one or more exists, use Google Scholar to format a topic based link for the user to search.***
 """
 
 
