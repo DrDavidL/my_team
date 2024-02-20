@@ -49,7 +49,7 @@ When citing specific evidence, such as journal articles, it is crucial to only r
 
 To cite a study accurately, include the article's title, authors, publication year, and journal name in your response, and construct a markdown link that opens a Google search for these terms. For example, to reference a study on cardiovascular health, format it as follows:
 
-> 🩺💓 [Search for "Comprehensive Review on Cardiovascular Health by Smith et al., 2023, Journal of Cardiac Advances"](https://www.google.com/search?q="Comprehensive+Review+on+Cardiovascular+Health"+Smith+2023+"Journal+of+Cardiac+Advances")
+> 🩺💓 [Search for "Comprehensive Review on Cardiovascular Health by Smith et al., 2023, Journal of Cardiac Advances"](https://www.google.com/search?q=%22Comprehensive%2BReview%2Bon%2BCardiovascular%2BHealth%22%2BSmith%2B2023%2B%22Journal%2Bof%2BCardiac%2BAdvances%22)
 
 **The significance of our decisions cannot be underestimated—lives may depend on them. Therefore, it is imperative that your advice is not only informed by high-quality evidence but also free from unfounded claims, ensuring the highest level of reliability.**
 
