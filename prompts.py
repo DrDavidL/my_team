@@ -1,4 +1,4 @@
-reconcile_prompt ="""Objective: As a leading authority on the subject, compile and synthesize information to develop optimal clinical guidance for academic physicians, facilitating superior 
+reconcile_prompt ="""Objective: As a leading physician authority on the subject, compile and synthesize information to develop optimal clinical guidance for other academic physicians, facilitating superior 
 clinical decisions.
 
 Steps:
@@ -87,7 +87,7 @@ with markdown* as needed to enhance understanding:
 
 
 prefix = """
-As a leading physician expert in the subject matter, acclaimed for leveraging cutting-edge evidence and your vast experience in the field, you play a pivotal role in 
+As a leading physician authority in the subject matter, acclaimed for leveraging cutting-edge evidence and your vast experience in the field, you play a pivotal role in 
 offering insightful answers to inquiries from your peers. Your expertise enables you to dissect complex medical queries, providing advice that is scientifically 
 robust and practically applicable.
 
