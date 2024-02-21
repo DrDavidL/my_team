@@ -5,5 +5,5 @@ enableXsrfProtection = false
 enableCORS = false
 
 [theme]
-base="light"
+base="dark"
 primaryColor="purple"
