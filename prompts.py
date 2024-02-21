@@ -1,4 +1,4 @@
-reconcile_prompt ="""Objective: Compile and synthesize information to develop optimal clinical guidance for academic physicians, facilitating superior 
+reconcile_prompt ="""Objective: As a leading authority on the subject, compile and synthesize information to develop optimal clinical guidance for academic physicians, facilitating superior 
 clinical decisions.
 
 Steps:
@@ -34,16 +34,22 @@ short_formatting = """Formatting Request: Perform **all steps** precisely as dir
 sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
 with markdown* as needed to enhance understanding:
 
-- For **journal article references**, format citations using markdown to create a Google Scholar search link for the subject matter. This method ensures the referenced information can be accurately located and reviewed:
+- Format **Further Reading** as follows with several extremely helpful links. To avoid dead links, DO NOT link to specific articles. Instead, link to subject matter. This method ensures the referenced information can be accurately located and reviewed:
   
   ```markdown
-  [Search on Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
+  [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
   ```
   
-- For **non-journal references**, use the main Google search. Ensure all citations are formatted to facilitate easy verification and access:
+- For **non-journal sites**, use the main Google search:
+
+```markdown
+  [Search for "Organization"](https://www.google.com/search?q=Organization)
+  ```
+
+- For well known sites, you can link directly. For example, the CDC:
   
   ```markdown
-  [Search for "Topic or Guideline"](https://www.google.com/search?q=Topic+or+Guideline)
+  [The CDC](https://www.cdc.gov/)
 
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
@@ -57,17 +63,23 @@ and format content with markdown as needed to enhance understanding.Formatting R
 sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
 with markdown* as needed to enhance understanding:
 
-- For **journal article references**, format citations using markdown to create a Google Scholar search link for the subject matter. This method ensures the referenced information can be accurately located and reviewed:
+- Format **Further Reading** as follows with several extremely helpful links. To avoid dead links, DO NOT link to specific articles. Instead, link to subject matter. This method ensures the referenced information can be accurately located and reviewed:
   
   ```markdown
-  [Search on Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
+  [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
   ```
   
-- For **non-journal references**, use the main Google search. Ensure all citations are formatted to facilitate easy verification and access:
+- For **non-journal sites**, use the main Google search:
+
+```markdown
+  [Search for "Organization"](https://www.google.com/search?q=Organization)
+  ```
+
+- For well known sites, you can link directly. For example, the CDC:
   
   ```markdown
-  [Search for "Topic or Guideline"](https://www.google.com/search?q=Topic+or+Guideline)
-
+  [The CDC](https://www.cdc.gov/)
+  ```
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Studies on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
@@ -92,19 +104,26 @@ in every piece of shared information.
 - **Markdown Formatting for Citations:** Use the specified markdown format for all citations, distinguishing between Google Scholar for journal articles and the main Google search for other references. This format helps ensure that information can be accurately traced and verified by your peers.
 - **Commitment to Evidence-Based Practices:** Your advice should strictly adhere to evidence-based practices. *Your answers matter: Lives are at stake.*
 
-- At the end, include a **Further Reading** section with content formatted as follows:
+- At the end, include a **Further Reading** section with several highly useful links formatted as follows:
 
 
-- For **journal articles**, format citations using markdown to create a Google Scholar search link for the subject matter. This method ensures the referenced information can be accurately located and reviewed:
+- To avoid dead links, DO NOT link to specific articles. Instead, link to subject matter. This method ensures the referenced information can be accurately located and reviewed:
   
   ```markdown
-  [Search on Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
+  [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
   ```
   
-- For **non-journal sites**, use the main Google search. Ensure all citations are formatted to facilitate easy verification and access:
+- For **non-journal sites**, use the main Google search:
+
+```markdown
+  [Search for "Organization"](https://www.google.com/search?q=Organization)
+  ```
+
+- For well known sites, you can link directly. For example, the CDC:
   
   ```markdown
-  [Search for "Topic or Guideline"](https://www.google.com/search?q=Topic+or+Guideline)
+  [The CDC](https://www.cdc.gov/)
+  ```
 
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
