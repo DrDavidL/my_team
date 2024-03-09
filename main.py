@@ -252,104 +252,7 @@ def clean_and_split_html(full_html, separator=' <END OF SITE> '):
 
     return all_paragraphs
 
-# @st.cache_resource
-# def set_llm_chat(model, temperature):
-#     if model == "openai/gpt-3.5-turbo":
-#         model = "gpt-3.5-turbo"
-#     if model == "openai/gpt-3.5-turbo-16k":
-#         model = "gpt-3.5-turbo-16k"
-#     if model == "openai/gpt-4":
-#         model = "gpt-4"
-#     if model == "openai/gpt-4-turbo-preview":
-#         model = "gpt-4-turbo-preview"
-#     if model == "gpt-4" or model == "gpt-3.5-turbo"  or model == "gpt-4-turbo-preview":
-#         return ChatOpenAI(model=model, openai_api_base = "https://api.openai.com/v1/", openai_api_key = config["OPENAI_API_KEY"], temperature=temperature)
-#     else:
-#         headers={ "HTTP-Referer": "https://my-ai-team.streamlit.app", # To identify your app
-#           "X-Title": "GPT and Med Ed"}
-#         return ChatOpenAI(model = model, openai_api_base = "https://openrouter.ai/api/v1", openai_api_key = config["OPENROUTER_API_KEY"], temperature=temperature, max_tokens = 1500, headers=headers)
 
-# @st.cache_resource
-# def create_retriever(texts):  
-    
-#     embeddings = OpenAIEmbeddings(model = "text-embedding-ada-002",
-#                                   openai_api_base = "https://api.openai.com/v1/",
-#                                   openai_api_key = config['OPENAI_API_KEY']
-#                                   )
-#     try:
-#         vectorstore = FAISS.from_texts(texts, embeddings)
-#     except (IndexError, ValueError) as e:
-#         st.error(f"Error creating vectorstore: {e}")
-#         return
-#     retriever = vectorstore.as_retriever(k=5)
-
-#     return retriever
-
-# def split_texts(text, chunk_size, overlap, split_method):
-#     text =  ''.join(text)
-#     text_splitter = RecursiveCharacterTextSplitter(
-#         chunk_size=chunk_size, chunk_overlap=overlap)
-
-#     splits = text_splitter.split_text(text)
-#     if not splits:
-#         # st.error("Failed to split document")
-#         st.stop()
-
-#     return splits
-
-# @st.cache_resource
-# def prepare_rag(list, model):
-#     # splits = split_texts(text, chunk_size=1000, overlap=100, split_method="recursive")
-#     text = ' <END OF SITE> '.join(list)
-#     splits = clean_and_split_html(text)
-#     retriever = create_retriever(splits)
-#     llm = set_llm_chat(model=model, temperature=0.3)
-#     rag = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
-#     return rag
-
-# @st.cache_data
-# def websearch_learn(web_query: str, retrieval, scrape_method, max) -> float:
-#     """
-#     Obtains real-time search results from across the internet. 
-#     Supports all Google Advanced Search operators such (e.g. inurl:, site:, intitle:, etc).
-    
-#     :param web_query: A search query, including any Google Advanced Search operators
-#     :type web_query: string
-#     :return: A list of search results
-#     :rtype: json
-    
-#     """
-    
-#     web_query = domains + " " + web_query
-#     # st.info(f'Here is the websearch input: **{web_query}**')
-#     url = "https://real-time-web-search.p.rapidapi.com/search"
-#     querystring = {"q":web_query,"limit":max}
-#     headers = {
-#         "X_RapidAPI_Key": config["X_RapidAPI_Key"],
-#         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com"
-#     }
-
-#     response = requests.get(url, headers=headers, params=querystring)
-#     response_data = response.json()
-#     urls = []
-#     snippets = []
-#     for item in response_data['data']:
-#         urls.append(item['url'])   
-#         snippets.append(item['snippet'])
-#     if retrieval == "fulltext" or retrieval == "RAG":
-#             # st.write(item['url'])
-#         if scrape_method != "Browserless":
-#             response_data = scrapeninja(urls, max)
-#         else:
-#             response_data = browserless(urls, max)
-#         # st.info("Web results reviewed.")
-#         return response_data, urls
-
-#     else:
-#         # st.info("Web snippets reviewed.")
-#         st.write(f'HERE IS THE SNIPPETS RESPONSE: {response_data}')
-#         response_data = join_and_clean_snippets(response_data["data"])
-#         return response_data, urls
     
 @st.cache_data
 def browserless(url_list, max):
@@ -715,9 +618,9 @@ if st.secrets["use_docker"] == "True" or check_password():
 
     with st.sidebar.expander("Click to View Model Options:", expanded=False):
         st.markdown("[Model Explanations](https://openrouter.ai/models)")
-        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
-        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=5)
-        model3 = st.selectbox("Reonciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index = 1)
+        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-3-sonnet:beta", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
+        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-3-sonnet:beta", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=4)
+        model3 = st.selectbox("Reonciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4-turbo-preview", "anthropic/claude-3-sonnet:beta"), index = 1)
         if use_rag:
             model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index=0)
 
@@ -861,8 +764,9 @@ if st.secrets["use_docker"] == "True" or check_password():
             if use_snippets:
                 with st.expander(f"Web Search Content:"):                
                     st.markdown("Web Snippets:")
-                    for snip in st.session_state.snippets:                    
-                        st.markdown(snip) 
+                    for snip in st.session_state.snippets:
+                        cleaned_snip = snip.replace("<END OF SITE>", "")  # Remove "<END OF SITE>" from the snippet
+                        st.markdown(cleaned_snip) 
                     st.download_button('Download Web Snippets', str(st.session_state.snippets), f'web_snips.txt', 'text/txt')
         if st.session_state.final_response != '':        
             with st.expander(f"Current Consensus Response"):

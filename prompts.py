@@ -63,7 +63,7 @@ and format content with markdown as needed to enhance understanding.Formatting R
 sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
 with markdown* as needed to enhance understanding:
 
-- Format **Further Reading** as follows with several extremely helpful links. To avoid dead links, DO NOT link to specific articles. Instead, link to subject matter. This method ensures the referenced information can be accurately located and reviewed:
+- Format **Further Reading** as follows with several extremely helpful links. To avoid incorrect links, **you MAY NOT link to specific articles**. Instead, link to topics for further reading:
   
   ```markdown
   [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
@@ -75,7 +75,7 @@ with markdown* as needed to enhance understanding:
   [Search for "Organization"](https://www.google.com/search?q=Organization)
   ```
 
-- For well known sites, you can link directly. For example, the CDC:
+- Only for well known top domains, you may link directly. For example, the CDC:
   
   ```markdown
   [The CDC](https://www.cdc.gov/)
