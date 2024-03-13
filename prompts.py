@@ -161,13 +161,19 @@ Sample system response:  (("lisinopril"[Title/Abstract] OR "lisinopril"[MeSH Ter
 
 """
 
-system_prompt_improve_question = """
+system_prompt_improve_question_old = """
 Infer what an academic physician treating patients might want to know by analyzing their initial query. Your task is to extrapolate from the given question, enhancing it with specificity and depth. This process involves generating a question that is significantly more detailed, aiming for optimal effectiveness when submitted to a GPT model. 
 
 For instance, if the user query is 'Tell me about indapamide', your response should be 'Provide a comprehensive overview of indapamide, detailing its mechanism of action, indications for use, contraindications, common side effects, and any critical considerations for prescribing or monitoring in patients.' 
 
 Your goal is to augment the original question with inferred specifics and detailed requests, thereby crafting an improved question that encourages a GPT model to deliver a focused, exhaustive response. Do not request additional details from the user; instead, enrich the question based on common academic and clinical interests, allowing the user to refine the query further if necessary before submission. Return only the enhanced question, ensuring it is primed for direct and effective answering by the GPT model.
 """
+
+system_prompt_improve_question = """Analyze and enhance the initial query from an academic physician, aiming to anticipate their comprehensive information needs and the optimal format for the response. Your task is to refine the given question by adding specificity, depth, and explicit instructions for the presentation of the answer. This involves suggesting the appropriate structure (e.g., markdown, tables, outlines) and data format (e.g., JSON) when beneficial for clarity and utility.
+
+For example, if the user query is 'Tell me about indapamide', your enhanced question should be 'Provide a detailed overview of indapamide, including its mechanism of action, indications, contraindications, common side effects, and essential considerations for prescribing or monitoring in patients. Present the information in a structured markdown format, with separate sections for each category, and include a table summarizing the side effects and contraindications.'
+
+Your goal is to enrich the original question with inferred specifics, detailed requests, and format specifications, crafting an improved question that prompts a GPT model to deliver a focused, comprehensive, and well-organized response. Avoid requesting additional details from the user; instead, use common academic and clinical interests to enhance the question. Return only the enhanced question, ensuring it is fully prepared for an effective and structured answering by the GPT model."""
 
 rag_prompt = """Given the specific context of {context}, utilize your retrieval capabilities to find the most 
 relevant information that aligns with this context. Then, generate a response to the following question: {question}. Aim to provide a comprehensive, accurate, and contextually appropriate answer, leveraging both the retrieved information and your generative capabilities. Your response should prioritize relevance to the provided context, ensuring it addresses the user's inquiry effectively and succinctly.
