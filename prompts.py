@@ -65,7 +65,7 @@ Your synthesis should serve as a direct, actionable guide for academic physician
 
 **Further Resources:**
 
-- Suggest **Google Scholar** and **Google search** links for extended reading, focusing on reliable and authoritative sources only."""
+- Suggest **Google Scholar** and **Google search** links with current references (recent 3 years) for extended reading, focusing on reliable and authoritative sources only."""
 
 
 short_formatting = """Formatting Request: Perform **all steps** precisely as directed to assemble your final response. Show text only for 
