@@ -694,12 +694,7 @@ if st.secrets["use_docker"] == "True" or check_password():
                     snip = snip.replace('<END OF SITE>', '\n\n')
                     st.markdown(snip)
                     
-        if only_links:
-            with st.expander(f"Additional Links for you!"):
-                st.warning("These are not sent to the LLM with this 'Links Only' option and appear here for your review.")
-                for snip in st.session_state.snippets:
-                    snip = snip.replace('<END OF SITE>', '\n\n')
-                    st.markdown(snip)
+
 
         if use_rag: 
             with st.spinner('Obtaining fulltext from web search results...'):
@@ -726,6 +721,13 @@ if st.secrets["use_docker"] == "True" or check_password():
                     st.write("Here is the answer according to the RAG processed web content:")    
                     st.write(response.response)
                     st.session_state.ebm = response.response
+                    
+        if only_links:
+            with st.expander(f"Additional Links for you!"):
+                st.warning("These are not sent to the LLM with this 'Links Only' option and appear here for your review.")
+                for snip in st.session_state.snippets:
+                    snip = snip.replace('<END OF SITE>', '\n\n')
+                    st.markdown(snip)
             
 
 

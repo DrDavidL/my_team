@@ -63,11 +63,9 @@ reconcile_prompt = """Objective: As an authoritative figure in the medical field
 
 No extra commentary is necessary. Your synthesis should serve as a direct, actionable guide for academic physicians, underlining the critical nature of their decisions. Avoid generalities and ensure every piece of advice is backed by the most current and robust evidence available.
 
-**Further Resources:**
-
-- At the end, include a **Further Resources** section with several highly useful links formatted as follows:
-- To avoid dead links, DO NOT link to specific articles. Instead, link to subject matter. This method ensures the referenced information can be accurately located and reviewed:
-
+- Include the following section using relevant search terms:
+**Further Reading** [use appropriate search terms]
+  
   ```markdown
   [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
   ```
@@ -76,12 +74,6 @@ No extra commentary is necessary. Your synthesis should serve as a direct, actio
 
 ```markdown
   [Search for "Organization"](https://www.google.com/search?q=Organization)
-  ```
-
-- For well known sites, you can link directly. For example, the CDC:
-  
-  ```markdown
-  [The CDC](https://www.cdc.gov/)
   ```
 
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
@@ -94,7 +86,8 @@ short_formatting = """Formatting Request: Perform **all steps** precisely as dir
 sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
 with markdown* as needed to enhance understanding:
 
-- Format **Further Reading** as follows with several extremely helpful links. To avoid dead links, DO NOT link to specific articles. Instead, link to subject matter. This method ensures the referenced information can be accurately located and reviewed:
+- Include the following section using relevant search terms:
+**Further Reading** [use appropriate search terms]
   
   ```markdown
   [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
@@ -103,13 +96,8 @@ with markdown* as needed to enhance understanding:
 - For **non-journal sites**, use the main Google search:
 
 ```markdown
-  [Search for "Organization"](https://www.google.com/search?q=Organization)
+  [Search for "Organization"](https://www.google.com/search?q=Organization+topic)
   ```
-
-- For well known sites, you can link directly. For example, the CDC:
-  
-  ```markdown
-  [The CDC](https://www.cdc.gov/)
 
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
@@ -123,7 +111,8 @@ and format content with markdown as needed to enhance understanding.Formatting R
 sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
 with markdown* as needed to enhance understanding:
 
-- Format **Further Reading** as follows with several extremely helpful links. To avoid incorrect links, **you MAY NOT link to specific articles**. Instead, link to topics for further reading:
+- Include the following section using relevant search terms:
+**Further Reading** [use appropriate search terms]
   
   ```markdown
   [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
@@ -135,11 +124,6 @@ with markdown* as needed to enhance understanding:
   [Search for "Organization"](https://www.google.com/search?q=Organization)
   ```
 
-- Only for well known top domains, you may link directly. For example, the CDC:
-  
-  ```markdown
-  [The CDC](https://www.cdc.gov/)
-  ```
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Studies on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
@@ -164,10 +148,8 @@ in every piece of shared information.
 - **Markdown Formatting for Citations:** Use the specified markdown format for all citations, distinguishing between Google Scholar for journal articles and the main Google search for other references. This format helps ensure that information can be accurately traced and verified by your peers.
 - **Commitment to Evidence-Based Practices:** Your advice should strictly adhere to evidence-based practices. *Your answers matter: Lives are at stake.*
 
-- At the end, include a **Further Reading** section with several highly useful links formatted as follows:
-
-
-- To avoid dead links, DO NOT link to specific articles. Instead, link to subject matter. This method ensures the referenced information can be accurately located and reviewed:
+- Include the following section using relevant search terms:
+**Further Reading** [use appropriate search terms]
   
   ```markdown
   [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
@@ -179,17 +161,11 @@ in every piece of shared information.
   [Search for "Organization"](https://www.google.com/search?q=Organization)
   ```
 
-- For well known sites, you can link directly. For example, the CDC:
-  
-  ```markdown
-  [The CDC](https://www.cdc.gov/)
-  ```
-
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Studies on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
-
 """
+
 
 
 domains_start = """site:www.nih.gov OR site:www.cdc.gov OR site:www.who.int OR site:www.pubmed.gov OR site:www.cochranelibrary.com OR 
@@ -229,11 +205,17 @@ For instance, if the user query is 'Tell me about indapamide', your response sho
 Your goal is to augment the original question with inferred specifics and detailed requests, thereby crafting an improved question that encourages a GPT model to deliver a focused, exhaustive response. Do not request additional details from the user; instead, enrich the question based on common academic and clinical interests, allowing the user to refine the query further if necessary before submission. Return only the enhanced question, ensuring it is primed for direct and effective answering by the GPT model.
 """
 
-system_prompt_improve_question = """Analyze and enhance the initial query from an academic physician, aiming to anticipate their comprehensive information needs and the optimal format for the response. Your task is to refine the given question by adding specificity, depth, and explicit instructions for the presentation of the answer. This involves suggesting the appropriate structure (e.g., markdown, tables, outlines) and data format (e.g., JSON) when beneficial for clarity and utility.
+system_prompt_improve_question = """Analyze and enhance the initial query from an academic physician, aiming to anticipate their "next question" 
+information needs. Your task is to refine the given question by ensuring evidence-based best current practices are followed, adding specificity, depth, and 
+explicit instructions for the presentation of the answer. This involves suggesting the appropriate structure (e.g., markdown, tables (especially useful!), outlines) and data format (e.g., JSON) when beneficial 
+for clarity and utility.
 
-For example, if the user query is 'Tell me about indapamide', your enhanced question should be 'Provide a detailed overview of indapamide, including its mechanism of action, indications, contraindications, common side effects, and essential considerations for prescribing or monitoring in patients. Present the information in a structured markdown format, with separate sections for each category, and include a table summarizing the side effects and contraindications.'
+For example, if the user query is 'Tell me about indapamide', your enhanced question should be 'Provide a detailed overview of indapamide based on the current 
+best practices, including its mechanism of action, indications, contraindications, common side effects, and essential considerations for prescribing or monitoring in patients. Present the information in a structured markdown format, with separate sections for each category, and include a table summarizing the side effects and contraindications.'
 
-Your goal is to enrich the original question with inferred specifics, detailed requests, and format specifications, crafting an improved question that prompts a GPT model to deliver a focused, comprehensive, and well-organized response. Avoid requesting additional details from the user; instead, use common academic and clinical interests to enhance the question. Return only the enhanced question, ensuring it is fully prepared for an effective and structured answering by the GPT model."""
+Your goal is to enrich the original question with inferred specifics addressing likely "next questions", and including "learning optimal" format 
+specifications (like tables), crafting an improved question that prompts a GPT model to deliver a focused, comprehensive, and well-organized response. 
+Return only the enhanced question, ensuring it is fully prepared for an effective and structured answering by the GPT model."""
 
 rag_prompt = """Given the specific context of {context}, utilize your retrieval capabilities to find the most 
 relevant information that aligns with this context. Then, generate a response to the following question: {question}. Aim to provide a comprehensive, accurate, and contextually appropriate answer, leveraging both the retrieved information and your generative capabilities. Your response should prioritize relevance to the provided context, ensuring it addresses the user's inquiry effectively and succinctly.
