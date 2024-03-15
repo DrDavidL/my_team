@@ -61,11 +61,33 @@ reconcile_prompt = """Objective: As an authoritative figure in the medical field
 
 **Final Note:**
 
-Your synthesis should serve as a direct, actionable guide for academic physicians, underlining the critical nature of their decisions. Avoid generalities and ensure every piece of advice is backed by the most current and robust evidence available.
+No extra commentary is necessary. Your synthesis should serve as a direct, actionable guide for academic physicians, underlining the critical nature of their decisions. Avoid generalities and ensure every piece of advice is backed by the most current and robust evidence available.
 
 **Further Resources:**
 
-- Suggest **Google Scholar** and **Google search** links with current references (recent 3 years) for extended reading, focusing on reliable and authoritative sources only."""
+- At the end, include a **Further Resources** section with several highly useful links formatted as follows:
+- To avoid dead links, DO NOT link to specific articles. Instead, link to subject matter. This method ensures the referenced information can be accurately located and reviewed:
+
+  ```markdown
+  [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
+  ```
+  
+- For **non-journal sites**, use the main Google search:
+
+```markdown
+  [Search for "Organization"](https://www.google.com/search?q=Organization)
+  ```
+
+- For well known sites, you can link directly. For example, the CDC:
+  
+  ```markdown
+  [The CDC](https://www.cdc.gov/)
+  ```
+
+- Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
+
+> 🩺💓 [Studies on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
+"""
 
 
 short_formatting = """Formatting Request: Perform **all steps** precisely as directed to assemble your final response. Show text only for 
