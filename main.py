@@ -620,7 +620,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         st.markdown("[Model Explanations](https://openrouter.ai/models)")
         model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-3-sonnet:beta", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
         model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-3-sonnet:beta", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=4)
-        model3 = st.selectbox("Reonciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4-turbo-preview", "anthropic/claude-3-sonnet:beta"), index = 1)
+        model3 = st.selectbox("Reonciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index = 1)
         if use_rag:
             model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index=0)
 
@@ -785,3 +785,45 @@ if st.secrets["use_docker"] == "True" or check_password():
                 st.write(convo_str)
                 st.download_button('Download Conversation Record', convo_str, f'convo.txt', 'text/txt')
                 
+
+    
+    if st.checkbox("Ask a follow-up question? (Prior answers appear in the left sidebar.)"):
+    
+        final_followup_prompt = f'{followup_system_prompt} Question was:\n\n{user_prompt} \n\n Answer was {st.session_state.final_response}'
+    
+
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        
+
+        if "messages" not in st.session_state:
+
+            st.session_state.messages = [{"role": "system", "content": final_followup_prompt}]
+            
+        for message in st.session_state.messages:
+            if message['role'] == "system":
+                if message['content'] != final_followup_prompt:
+                    st.session_state.messages = []
+                    st.session_state.messages = [{"role": "system", "content": final_followup_prompt}]
+                
+
+        for message in st.session_state.messages:
+            if message['role'] != "system":
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+
+        if prompt := st.chat_input("Ask followup!"):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            with st.chat_message("assistant"):
+                stream = client.chat.completions.create(
+                    model=model3,
+                    messages=[
+                        {"role": m["role"], "content": m["content"]}
+                        for m in st.session_state.messages
+                    ],
+                    stream=True,
+                )
+                response = st.write_stream(stream)
+            st.session_state.messages.append({"role": "assistant", "content": response})

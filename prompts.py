@@ -207,3 +207,7 @@ Your enhanced question should be: 'Provide a detailed overview of indapamide, fo
 rag_prompt = """Given the specific context of {context}, utilize your retrieval capabilities to find the most 
 relevant information that aligns with this context. Then, generate a response to the following question: {question}. Aim to provide a comprehensive, accurate, and contextually appropriate answer, leveraging both the retrieved information and your generative capabilities. Your response should prioritize relevance to the provided context, ensuring it addresses the user's inquiry effectively and succinctly.
 """
+
+followup_system_prompt = """Provide brief additional expert answers to physician users, so no disclaimers, who are asking followup questions for this original 
+question and answer: 
+"""
