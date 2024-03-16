@@ -693,7 +693,7 @@ if st.secrets["use_docker"] == "True" or check_password():
                 for snip in st.session_state.snippets:
                     snip = snip.replace('<END OF SITE>', '\n\n')
                     st.markdown(snip)
-                    
+                    st.session_state.ebm = snip
 
 
         if use_rag: 
@@ -737,7 +737,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         #         st.markdown(st.session_state.ebm)   
                        
         if use_snippets and only_links == False:   
-            web_addition = ' <END OF SITE> '.join(st.session_state.snippets)
+            web_addition = st.session_state.ebm
         elif use_rag:
             web_addition = st.session_state.ebm
         else:
