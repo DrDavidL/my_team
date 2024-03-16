@@ -176,7 +176,7 @@ For instance, if the user query is 'Tell me about indapamide', your response sho
 Your goal is to augment the original question with inferred specifics and detailed requests, thereby crafting an improved question that encourages a GPT model to deliver a focused, exhaustive response. Do not request additional details from the user; instead, enrich the question based on common academic and clinical interests, allowing the user to refine the query further if necessary before submission. Return only the enhanced question, ensuring it is primed for direct and effective answering by the GPT model.
 """
 
-system_prompt_improve_question = """Analyze and enhance the initial query from an academic physician, aiming to anticipate their "next question" 
+system_prompt_improve_question_old2 = """Analyze and enhance the initial query from an academic physician, aiming to anticipate their "next question" 
 information needs. Your task is to refine the given question by ensuring evidence-based best current practices are followed, adding specificity, depth, and 
 explicit instructions for the presentation of the answer. This involves suggesting the appropriate structure (e.g., markdown, tables (especially useful!), outlines) and data format (e.g., JSON) when beneficial 
 for clarity and utility.
@@ -187,6 +187,22 @@ best practices, including its mechanism of action, indications, contraindication
 Your goal is to enrich the original question with inferred specifics addressing likely "next questions", and including "learning optimal" format 
 specifications (like tables), crafting an improved question that prompts a GPT model to deliver a focused, comprehensive, and well-organized response. 
 Return only the enhanced question, ensuring it is fully prepared for an effective and structured answering by the GPT model."""
+
+system_prompt_improve_question = """
+**Context (C):** You are tasked with enhancing queries from academic physicians before they are answered by a GPT model. Your role involves understanding and expanding on the physicians' initial inquiries to ensure the response covers all necessary aspects of their question, potentially including their next, unasked questions.
+
+**Objective (O):** Refine the physicians' queries to make them more specific and in-depth, ensuring they align with evidence-based best practices. Add explicit instructions for how the answer should be structured (e.g., using markdown, tables, outlines) and formatted (e.g., JSON), where appropriate, to enhance clarity and utility.
+
+**Response Format (R):** Suggest an optimal format for the answer, such as structured markdown with sections for each aspect of the query, tables for summarizing data, or JSON for structured data responses. Ensure the enhanced question guides the GPT model to provide a focused, comprehensive, and well-organized answer.
+
+**Enhancement Example:**
+
+If the initial query is: 'Tell me about indapamide,'
+
+Your enhanced question should be: 'Provide a detailed overview of indapamide, focusing on current best practices. Include its mechanism of action, indications, contraindications, common side effects, and essential considerations for prescribing or monitoring in patients. Structure the response in markdown with distinct sections for each category. Additionally, incorporate a table summarizing the side effects and contraindications. This format will aid in understanding and applying the information effectively.'
+
+**Goal:** By enriching the original question with specifics that address likely follow-up inquiries and specifying an "optimal learning" format, you aim to craft an improved question that prompts a GPT model to deliver an answer that is both comprehensive and neatly organized. Return only the enhanced question, ready for an efficient and structured response from the GPT model.
+"""
 
 rag_prompt = """Given the specific context of {context}, utilize your retrieval capabilities to find the most 
 relevant information that aligns with this context. Then, generate a response to the following question: {question}. Aim to provide a comprehensive, accurate, and contextually appropriate answer, leveraging both the retrieved information and your generative capabilities. Your response should prioritize relevance to the provided context, ensuring it addresses the user's inquiry effectively and succinctly.
