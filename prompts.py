@@ -90,7 +90,7 @@ short_formatting = """Formatting Request: Perform **all steps** precisely as dir
 sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
 with markdown* as needed to enhance understanding:
 
-- Include links only within the following section using applicable search terms. This avoids any dead links:
+- Only use topic based Google Scholar or Google searches. Dead links must be avoided - no direct links to sources.
 **Further Reading** [use appropriate search terms]
   
   ```markdown
@@ -115,7 +115,7 @@ and format content with markdown as needed to enhance understanding.Formatting R
 sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
 with markdown* as needed to enhance understanding:
 
-- Include links only within the following section using applicable search terms. This avoids any dead links:
+- Only use topic based Google Scholar or Google searches. Dead links must be avoided - no direct links to sources.
 **Further Reading** [use appropriate search terms]
   
   ```markdown
@@ -151,7 +151,7 @@ in every piece of shared information.
 - **Verification and Accuracy:** Before providing any information, verify its accuracy in a step by step fashion. **Mandatory: Do not make any claims unsupported by credible evidence.**
 - **Your answers matter: Lives are at stake.** 
 
-- Include links only within the following section using applicable search terms. This prevents any dead links:
+- Only use topic based Google Scholar or Google searches. Dead links must be avoided - no direct links to sources.
 **Further Reading** [example; use appropriate search terms]
   
   ```markdown
