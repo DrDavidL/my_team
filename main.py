@@ -479,6 +479,8 @@ def check_password():
 st.title("My AI Team")
 with st.expander("Please read before using"):
     st.write("This app is a demonstration of consensus approaches to answering clinical questions using AI. It is not intended for direct clinical use. Always validate answers independently before using them in clinical practice. This app is for educational purposes only.")
+    st.info("Please select the models on the left sidebar that you would like to use to answer your question. The first two models will be used to generate answers, and the third model will be used to reconcile the two answers and any web search results.")
+    st.warning("Please note this is a demo of late-breaking methods and there may be errors. Validate all answers independently before *thinking* of leveraging answers beyond just AI exploration.")
     st.write("Author: David Liebovitz, MD")
     
 if 'user_question' not in st.session_state:
@@ -564,7 +566,8 @@ if st.secrets["use_docker"] == "True" or check_password():
         st.session_state["improved_question"] = improved_question.choices[0].message.content
     # Display the response from the API.
     if st.session_state.improved_question:
-        st.text_area("Improved Question - edit below as needed. If editing, hit your CMD (or CTRL) + *return* key when done editing", st.session_state.improved_question, height=150, key="improved_question_text_area")
+        with st.expander("Open to view/edit an enhanced version of your question for use with GPTs."):
+            st.text_area("Improved Question - edit below as needed. If editing, hit your CMD (or CTRL) + *return* key when done editing", st.session_state.improved_question, height=150, key="improved_question_text_area")
     col1, col2 = st.columns(2)
     with col1:
         use_internet = st.checkbox("Also search for evidence", value=True)
@@ -580,7 +583,7 @@ if st.secrets["use_docker"] == "True" or check_password():
     if use_internet:
         
         with st.sidebar:
-            search_method = st.radio("Web content used:", ("Just display links", "Web snippets from up to 10 webpages", "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages"))
+            search_method = st.radio("Web content used:", ("Just display links", "Web snippets from up to 10 webpages", "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages"), index = 1)
             with st.expander("Internet Search Details:"):
                 if search_method == "RAG (Retrieval-Augmented Generation) processing full-text from up to 5 webpages":
                     scrape_method = st.radio("Web scraping method:", ("Browserless", "ScrapeNinja"))
@@ -613,8 +616,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         # if use_rag:
         #     max = 9
     begin = st.button("Ask your question!")    
-    st.info("Please select the models you would like to use to answer your question. The first two models will be used to generate answers, and the third model will be used to reconcile the two answers and any web search results.")
-    st.warning("Please note this is a demo of late-breaking methods and there may be errors. Validate all answers independently before *thinking* of leveraging answers beyond just AI exploration.")
+
 
     with st.sidebar.expander("Click to View Model Options:", expanded=False):
         st.markdown("[Model Explanations](https://openrouter.ai/models)")
