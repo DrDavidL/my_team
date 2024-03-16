@@ -635,7 +635,8 @@ if st.secrets["use_docker"] == "True" or check_password():
         if use_internet:
             try:
 
-                st.session_state.snippets, urls = realtime_search(st.session_state.final_question, domains, max)
+                st.session_state.snippets, urls = realtime_search(user_prompt, domains, max)
+                # st.session_state.snippets, urls = realtime_search(st.session_state.final_question, domains, max)
 
             except:
                 st.error("Web search failed to respond; try again or uncheck internet searching.")
