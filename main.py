@@ -743,7 +743,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         else:
             web_addition = ''       
 
-        final_answer = reconcile(st.session_state.final_question, model3, st.session_state.model1_response, st.session_state.model2_response, web_addition, updated_reconcile_prompt)
+        final_answer = reconcile(st.session_state.final_question, model3, f'A {model1} response was:\n\n{st.session_state.model1_response}', f'A {model2} response was:\n\n{st.session_state.model2_response}', f'Information from the web was:\n\n{web_addition}', updated_reconcile_prompt)
         st.session_state.final_response = f'{st.session_state.final_question}\n\nFinal Response from {model3}\n\n{final_answer}'
         st.write(final_answer)
     
