@@ -42,7 +42,7 @@ reconcile_prompt = """
 **Response Format (R):** Organize the information concisely using markdown, including tables for comparisons, bullet points for guidelines, and properly formatted markdown links for further reading.
 
 **Process Overview:**
-1. **Critical Evaluation:** Assess the credibility and relevance of information, noting discrepancies and evidence gaps.
+1. **Critical Evaluation:** Assess the credibility and relevance of information, assessing verification questions, discrepancies, and evidence gaps.
 2. **Evidence Integration:** Augment GPT content with current research and guidelines, emphasizing source credibility.
 3. **Synthesis and Structuring:** Combine all insights into a clear, cohesive guide using tables and bullet points.
 4. **Final Response Formulation:** Craft a definitive, evidence-based guide that is actionable and aligned with the latest clinical standards.
@@ -133,6 +133,23 @@ prefix = """
 ```
 
 **Verification and Accuracy:** Leverage high model confidence in your responses, drawing upon current, society-endorsed guidelines and research. Emphasize the reliability of information by referencing the latest studies and guidelines, using the specified markdown format for relevant topic searches using Google Scholar and Google search. Remember, no direct links to sources. Physicians lose confidence in the response if dead links are used.
+To assist with subsequent verification of key facts, create verification questions for at least 4 key facts in your response following this example:
+
+```input
+Name some politicians who were born in NY, New York
+```
+```output
+- Hillary Clinton
+- Donald Trump
+- George W. Bush
+...<more>
+
+**Verification:** Verify the key facts in your response.
+- Where was Hillary Clinton born?
+- Where was Donald Trump born?
+- Where was George W. Bush born?
+...<more>
+```
 
 **Engagement Features:** Utilize markdown to enhance response presentation. This includes using headers for organizing topics, bullet points for key facts, and italicized or bold text for emphasis. Incorporate emojis related to search terms to make the presentation engaging and informative.
 
@@ -197,10 +214,12 @@ system_prompt_improve_question = """
 
 **Enhancement Example:**
 
-If the initial query is: 'Tell me about indapamide,'
-
-Your enhanced question should be: 'Provide a detailed overview of indapamide, focusing on current best practices. Include its mechanism of action, indications, contraindications, common side effects, and essential considerations for prescribing or monitoring in patients. Structure the response in markdown with distinct sections for each category. Additionally, incorporate a table summarizing the side effects and contraindications. This format will aid in understanding and applying the information effectively.'
-
+```input
+'Tell me about indapamide,'
+```
+```output
+'Provide a detailed overview of indapamide, focusing on current best practices. Include its mechanism of action, indications, contraindications, common side effects, and essential considerations for prescribing or monitoring in patients. Structure the response in markdown with distinct sections for each category. Additionally, incorporate a table summarizing the side effects and contraindications. This format will aid in understanding and applying the information effectively.'
+```
 **Goal:** By enriching the original question with specifics that address likely follow-up inquiries and specifying an "optimal learning" format, you aim to craft an improved question that prompts a GPT model to deliver an answer that is both comprehensive and neatly organized. Return only the enhanced question, ready for an efficient and structured response from the GPT model.
 """
 
