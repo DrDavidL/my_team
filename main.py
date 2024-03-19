@@ -13,7 +13,9 @@ from openai import OpenAI  # For direct use of the OpenAI class
 from llama_index.llms.openai import OpenAI as llamaOpenAI
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
 from llama_index.core import Document
+from st_copy_to_clipboard import st_copy_to_clipboard
 from prompts import *
+import markdown2
  
 
 st.set_page_config(page_title='My AI Team', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
@@ -83,7 +85,7 @@ def realtime_search(query, domains, max):
     querystring = {"q": full_query, "limit": max}
 
     headers = {
-        "X-RapidAPI-Key": config["X_RapidAPI_Key"],
+        "X-RapidAPI-Key": config["X-RapidAPI-Key"],
         "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com",
     }
 
@@ -756,6 +758,8 @@ if st.secrets["use_docker"] == "True" or check_password():
         final_answer = reconcile(st.session_state.final_question, model3, f'A {model1} response was:\n\n{st.session_state.model1_response}', f'A {model2} response was:\n\n{st.session_state.model2_response}', f'Information from the web was:\n\n{web_addition}', updated_reconcile_prompt)
         st.session_state.final_response = f'{st.session_state.final_question}\n\nFinal Response from {model3}\n\n{final_answer}'
         st.write(final_answer)
+        html = markdown2.markdown(final_answer)
+        st.download_button('Download Reconciled Response', html, f'final_response.html', 'text/html')
     
     with st.sidebar:
         st.header('Download and View Last Reponses')
@@ -793,7 +797,11 @@ if st.secrets["use_docker"] == "True" or check_password():
                 convo_str = ''
                 convo_str = "\n\n________\n\n________\n\n".join(st.session_state.thread)
                 st.write(convo_str)
-                st.download_button('Download Conversation Record', convo_str, f'convo.txt', 'text/txt')
+                html = markdown2.markdown(convo_str)
+                st.download_button('Download Conversation Record', html, f'convo.html', 'text/html')
+
+                    
+
                 
 
     
@@ -836,4 +844,6 @@ if st.secrets["use_docker"] == "True" or check_password():
                     stream=True,
                 )
                 response = st.write_stream(stream)
+                html = markdown2.markdown(response)
+                st.download_button('Download Followup Response', html, f'followup_response.html', 'text/html')
             st.session_state.messages.append({"role": "assistant", "content": response})
