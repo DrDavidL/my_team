@@ -573,7 +573,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         st.session_state["improved_question"] = improved_question.choices[0].message.content
     # Display the response from the API.
     if st.session_state.improved_question:
-        with st.expander("Open to view/edit an enhanced version of your question for use with GPTs."):
+        with st.expander("Review and edit the enhanced version of your question prior to sending.", expanded=True):
             st.text_area("Improved Question - edit below as needed. If editing, hit your CMD (or CTRL) + *return* key when done editing", st.session_state.improved_question, height=150, key="improved_question_text_area")
     col1, col2 = st.columns(2)
     with col1:
