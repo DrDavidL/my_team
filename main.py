@@ -13,7 +13,7 @@ from openai import OpenAI  # For direct use of the OpenAI class
 from llama_index.llms.openai import OpenAI as llamaOpenAI
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, ServiceContext
 from llama_index.core import Document
-from st_copy_to_clipboard import st_copy_to_clipboard
+# from st_copy_to_clipboard import st_copy_to_clipboard
 from prompts import *
 import markdown2
  
