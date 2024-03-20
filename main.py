@@ -565,7 +565,7 @@ if st.secrets["use_docker"] == "True" or check_password():
     if st.button("Improve my question!"):
 
         improved_question = client.chat.completions.create(
-            model="gpt-4-turbo-preview",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": system_prompt_improve_question},
                 {"role": "user", "content": user_prompt}
