@@ -694,11 +694,11 @@ if st.secrets["use_docker"] == "True" or check_password():
         st.session_state.model2_response = model2_final
 
         with st.expander(f'Model 1 Response'):
-            st.write(st.session_state.model1_response)
+            st.markdown(st.session_state.model1_response)
             
 
         with st.expander(f"Model 2 Response"):
-            st.write(st.session_state.model2_response)
+            st.markdown(st.session_state.model2_response)
             
         if use_snippets and only_links == False:
             with st.expander(f"Web Snippets Sent to the LLM:"):
@@ -731,7 +731,7 @@ if st.secrets["use_docker"] == "True" or check_password():
                     for url in urls:
                         st.write(url)
                     st.write("Here is the answer according to the RAG processed web content:")    
-                    st.write(response.response)
+                    st.markdown(response.response)
                     st.session_state.ebm = response.response
                     
         if only_links:
@@ -757,7 +757,7 @@ if st.secrets["use_docker"] == "True" or check_password():
 
         final_answer = reconcile(st.session_state.final_question, model3, f'A {model1} response was:\n\n{st.session_state.model1_response}', f'A {model2} response was:\n\n{st.session_state.model2_response}', f'Information from the web was:\n\n{web_addition}', updated_reconcile_prompt)
         st.session_state.final_response = f'{st.session_state.final_question}\n\nFinal Response from {model3}\n\n{final_answer}'
-        st.write(final_answer)
+        st.markdown(final_answer)
         html = markdown2.markdown(final_answer)
         st.download_button('Download Reconciled Response', html, f'final_response.html', 'text/html')
     
@@ -796,7 +796,7 @@ if st.secrets["use_docker"] == "True" or check_password():
             with st.expander(f"Saved Record of Consensus Responses"):
                 convo_str = ''
                 convo_str = "\n\n________\n\n________\n\n".join(st.session_state.thread)
-                st.write(convo_str)
+                st.markdown(convo_str)
                 html = markdown2.markdown(convo_str)
                 st.download_button('Download Conversation Record', html, f'convo.html', 'text/html')
 
