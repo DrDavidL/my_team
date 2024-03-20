@@ -66,8 +66,8 @@ reconcile_prompt = """
 """
 
 
-short_formatting = """Formatting Request: Perform **all steps** precisely as directed to assemble your final response. Show text only for 
-sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
+short_formatting = """Formatting Request: Perform **all steps** precisely as directed to assemble your final response. Include 
+sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, *VerificationQuestions* and *Further Reaading*. Use these as the headeings for your response and format content 
 with markdown* as needed to enhance understanding:
 
 - Only use topic based Google Scholar or Google searches. Dead links must be avoided - no direct links to sources.
@@ -90,10 +90,9 @@ with markdown* as needed to enhance understanding:
 
 full_formatting =  """Formatting Request: 
 Describe the steps performed, outcomes, and your final response in a clear, organized manner. Use distinct formatting for each section to ensure clarity and ease of 
-understanding. For example, you could use "### Critical Analysis:", "### Evidence Review:", "### Integration:", "### Final Clinical Guidance:", and "### Further Reading:" as headers for each section 
-and format content with markdown as needed to enhance understanding.Formatting Request: Perform **all steps** precisely as directed to assemble your final response. Show text only for 
-sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, and *Further Reaading*. Use these as the three headers for your response and format content 
-with markdown* as needed to enhance understanding:
+understanding. For example, you could use "### Critical Analysis:", "### Evidence Review:", "### Integration:", "### Final Clinical Guidance:", "### Verification Questions:" and "### Further Reading:" as headers for each section 
+and format content with markdown as needed to enhance understanding.Formatting Request: Perform **all steps** precisely as directed to assemble your final response. Show text for 
+all sections:
 
 - Only use topic based Google Scholar or Google searches. Dead links must be avoided - no direct links to sources.
 **Further Reading** [use appropriate search terms]
@@ -132,22 +131,21 @@ prefix = """
 - [Search Google for "Medical Organization guidelines"](https://www.google.com/search?q=Medical+Organization+guidelines) 🏥
 ```
 
-**Verification and Accuracy:** Leverage high model confidence in your responses, drawing upon current, society-endorsed guidelines and research. Emphasize the reliability of information by referencing the latest studies and guidelines, using the specified markdown format for relevant topic searches using Google Scholar and Google search. Remember, no direct links to sources. Physicians lose confidence in the response if dead links are used.
-To assist with subsequent verification of key facts, create verification questions for at least 4 key facts in your response following this example:
+**Questions for Verification:** Generate and answer questions of key facts in your response to ensure it aligns with the latest evidence based practice. Format example for this section:
 
 ```input
-Name some politicians who were born in NY, New York
+Name some politicians and where they were born
 ```
 ```output
-- Hillary Clinton
-- Donald Trump
-- George W. Bush
+- Donald Trump: New York, NY
+- George W. Bush: New Haven, CT
+- Hillary Clinton: Chicago, IL
 ...<more>
 
-**Verification:** Verify the key facts in your response.
-- Where was Hillary Clinton born?
-- Where was Donald Trump born?
-- Where was George W. Bush born?
+**Verification Questions:** Verify the key facts in your response.
+- Where was Hillary Clinton born? Chicago, IL
+- Where was Donald Trump born? New York, New York
+- Where was George W. Bush born? New Haven, CT
 ...<more>
 ```
 
