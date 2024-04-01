@@ -70,18 +70,15 @@ short_formatting = """Formatting Request: Perform **all steps** precisely as dir
 sections entitled *Evidence-Based Considerations* , *Final Clinical Guidance*, *VerificationQuestions* and *Further Reaading*. Use these as the headeings for your response and format content 
 with markdown* as needed to enhance understanding:
 
-- Only use topic based Google Scholar or Google searches. Dead links must be avoided - no direct links to sources.
+- Only use topic based Google Scholar or Google searches formatted using markdown. Dead links must be avoided - no direct links to sources. For example:
 **Further Reading** [use appropriate search terms]
   
-  ```markdown
   [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
-  ```
   
 - For **non-journal sites**, use the main Google search:
 
-```markdown
   [Search for "Organization"](https://www.google.com/search?q=Organization+topic)
-  ```
+
 
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
@@ -94,18 +91,14 @@ understanding. For example, you could use "### Critical Analysis:", "### Evidenc
 and format content with markdown as needed to enhance understanding.Formatting Request: Perform **all steps** precisely as directed to assemble your final response. Show text for 
 all sections:
 
-- Only use topic based Google Scholar or Google searches. Dead links must be avoided - no direct links to sources.
+- Only use topic based Google Scholar or Google searches formatted using markdown. Dead links must be avoided - no direct links to sources. For example:
 **Further Reading** [use appropriate search terms]
   
-  ```markdown
   [Search Using Google Scholar for "COPD and monteleukast in 2023"](https://scholar.google.com/scholar?q=COPD+monteleukast+2023)
-  ```
   
 - For **non-journal sites**, use the main Google search:
 
-```markdown
   [Search for "Organization"](https://www.google.com/search?q=Organization)
-  ```
 
 - Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
@@ -126,10 +119,9 @@ prefix = """
 
 **Response Format (R):** Format responses for rapid assimilation using markdown to effectively organize information. This includes bullet points for key takeaways and structured paragraphs for detailed explanations. When suggesting further reading, provide markdown-formatted searches to Google Scholar and Google, ensuring users can access up-to-date and high-quality evidence without encountering non-functional direct links. For example:
 
-```markdown
 - [Search Google Scholar for "condition treatment guidelines 2023"](https://scholar.google.com/scholar?q=condition+treatment+guidelines+2023) 📚
 - [Search Google for "Medical Organization guidelines"](https://www.google.com/search?q=Medical+Organization+guidelines) 🏥
-```
+
 
 **Questions for Verification:** Generate and answer questions of key facts in your response to ensure it aligns with the latest evidence based practice. Format example for this section:
 
