@@ -61,7 +61,7 @@ Organize information using markdown with tables for comparisons, bullet points f
 - Use markdown for structure.
 - Incorporate tables for comparisons.
 - Use bullet points for lists.
-- Provide Google Scholar and Google search links for additional reading. Ensure any other direct site links provided in the response were also included with the prompt (these are valid links); otherwise, rely on the topic-based Google Scholar links to ensure they function.
+- Provide Google Scholar and or Google search links (whichever is appropriate for the topic) for additional reading. Ensure any direct source links in your response were included with the prompt (since these are valid links); otherwise, rely on topic-based Google Scholar (or Google search) links to ensure they function.
 - Use emojis for engaging citations.
 
 ## Further Reading Example
