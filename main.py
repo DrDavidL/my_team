@@ -806,7 +806,7 @@ if st.secrets["use_docker"] == "True" or check_password():
                 
 
     
-    if st.checkbox("Ask a follow-up question? (Prior answers appear in the left sidebar.)"):
+    if st.checkbox("Enter a follow-up question number or ask your own follow-up question. (Prior responses appear in the left sidebar.)"):
     
         final_followup_prompt = f'{followup_system_prompt} Question was:\n\n{user_prompt} \n\n Answer was {st.session_state.final_response}'
     
