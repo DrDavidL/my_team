@@ -54,12 +54,10 @@ reconcile_prompt = """
 - Use **emojis** for engaging and informative citations.
 
 **Further Reading Example:**
-```markdown
 - [Search Google Scholar for "condition treatment guidelines 2023"](https://scholar.google.com/scholar?q=condition+treatment+guidelines+2023) 📚
 - [Search Google for "Medical Organization guidelines"](https://www.google.com/search?q=Medical+Organization+guidelines) 🏥
-```
 
-**Engagement through Emojis in Citations:**
+**Use Appropriate Emojis instead of bullets for the further reading links:** For example:
 > 🩺💓 [Cardiovascular Health Studies](https://www.google.com/search?q=cardiovascular+health+studies)
 
 **Final Note:** Provide a direct, actionable guide, grounded in the latest and most robust evidence, without unnecessary commentary.
@@ -80,7 +78,7 @@ with markdown* as needed to enhance understanding:
   [Search for "Organization"](https://www.google.com/search?q=Organization+topic)
 
 
-- Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
+- Instead of standard bullet symbols for links, use varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Studies on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
 """
@@ -100,7 +98,7 @@ all sections:
 
   [Search for "Organization"](https://www.google.com/search?q=Organization)
 
-- Include varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
+- Instead of standard bullet symbols for links, use varied emojis related to the search terms for an engaging and informative presentation. For example, if you're citing a study on cardiovascular health, format the citation like this:
 
 > 🩺💓 [Studies on Cardiovascular Health](https://www.google.com/search?q=expanded+search+terms)
 """
