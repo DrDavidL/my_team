@@ -67,6 +67,7 @@ Organize information using markdown with tables for comparisons, bullet points f
 
 ## Final Note
 Deliver a direct, actionable guide based on the latest and most robust evidence, avoiding unnecessary commentary.
+Generate 3-4 questions an academic physician is most likely to ask in followup. Number them for easy submission as a followup.
 """
 
 
