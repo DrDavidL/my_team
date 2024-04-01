@@ -65,7 +65,7 @@ Organize information using markdown with tables for comparisons, bullet points f
 - Use emojis for engaging citations.
 
 ## Further Reading Example
- 🩺💓 [Cardiovascular Health Studies](https://www.google.com/search?q=cardiovascular+health+studies)
+ 🩺💓 [Cardiovascular Health Studies](https://scholar.google.com/scholar?q=cardiovascular+health+studies)
 
 ## Final Note
 Create a direct, actionable guide based on the most recent and robust evidence, avoiding unnecessary commentary. Generate 3-4 follow-up questions that academic physicians are likely to ask after reading your response. Number the questions accordingly.
