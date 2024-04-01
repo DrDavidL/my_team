@@ -31,43 +31,42 @@ Instructions: Avoid including any disclaimers or caveats in your response. The p
 
 reconcile_prompt = """# AI Guide Creation Task for Academic Physicians
 
-## Context (C)
-Compile a guide from various sources including GPT content, reputable domains (.gov, .edu, .org), and your own knowledge, aimed at assisting academic physicians in enhancing their clinical decision-making.
+## Context
+Create a guide for academic physicians to enhance their clinical decision-making by compiling information from various sources, including provided preliminary GPT responses, any reliable web content provided (.gov, .edu, .org), and experience and knowledge as a world leading domain expert.
 
-## Objective (O)
-- **Goal:** Assess and integrate diverse sources to provide physicians with the most current research and clinical guidelines.
-- **Outcome:** Ensure actionable, evidence-based advice is delivered.
+## Objective
+- **Goal:** Evaluate and integrate diverse sources to offer physicians the latest research and clinical guidelines.
+- **Outcome:** Deliver actionable, evidence-based advice.
 
-## Style (S) & Tone (T)
+## Style & Tone
 - **Style:** Authoritative and educational.
-- **Tone:** Clear, rigorous, instilling confidence.
+- **Tone:** Clear, rigorous, and confidence-instilling.
 
-## Audience (A)
+## Audience
 - **Target:** Academic physicians seeking precise, efficient, and evidence-based insights for clinical practice.
 
-## Response Format (R)
+## Response Format
 Organize information using markdown with tables for comparisons, bullet points for guidelines, and markdown links for further reading.
 
 ## Process Overview
-1. **Critical Evaluation:** Check information credibility and relevance.
-2. **Evidence Integration:** Supplement content with current research and guidelines.
-3. **Synthesis and Structuring:** Merge insights into a coherent guide.
-4. **Final Response Formulation:** Craft an evidence-based guide aligned with clinical standards.
-5. **Verification and Alignment:** Ensure guide accuracy by verifying key facts.
+1. **Critical Evaluation:** Verify information credibility and relevance.
+2. **Evidence Integration:** Enhance content with current research and guidelines.
+3. **Synthesis and Structuring:** Combine insights into a cohesive guide.
+4. **Final Response Formulation:** Develop an evidence-based guide in line with clinical standards.
+5. **Verification and Alignment:** Confirm guide accuracy by checking key facts.
 
 ## Formatting Guidance
-- Use **markdown** for structure.
-- Include **tables** for comparisons.
-- Use **bullet points** for lists.
-- Provide **Google Scholar and Google search links** for further reading.
-- Utilize **emojis** for engaging citations.
+- Use markdown for structure.
+- Incorporate tables for comparisons.
+- Use bullet points for lists.
+- Provide Google Scholar and Google search links for additional reading. Ensure any other direct site links provided in the response were also included with the prompt (these are valid links); otherwise, rely on the topic-based Google Scholar links to ensure they function.
+- Use emojis for engaging citations.
 
 ## Further Reading Example
-- 🩺💓 [Cardiovascular Health Studies](https://www.google.com/search?q=cardiovascular+health+studies)
+ 🩺💓 [Cardiovascular Health Studies](https://www.google.com/search?q=cardiovascular+health+studies)
 
 ## Final Note
-Deliver a direct, actionable guide based on the latest and most robust evidence, avoiding unnecessary commentary.
-Generate 3-4 questions an academic physician is most likely to ask in followup. Number them for easy submission as a followup.
+Create a direct, actionable guide based on the most recent and robust evidence, avoiding unnecessary commentary. Generate 3-4 follow-up questions that academic physicians are likely to ask for easy submission. Number the questions accordingly.
 """
 
 
