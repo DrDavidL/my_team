@@ -564,15 +564,17 @@ if st.secrets["use_docker"] == "True" or check_password():
     improved_expander = False    
     if st.button("Improve my question!"):
         improved_expander = True
-
-        improved_question = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt_improve_question},
-                {"role": "user", "content": user_prompt}
-            ],
-            stream=False,
-        )
+        try:
+            improved_question = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt_improve_question},
+                    {"role": "user", "content": user_prompt}
+                ],
+                stream=False,
+            )
+        except:
+            st.error("We have an error at OpenAI. Check https://status.openai.com.")
         st.session_state["improved_question"] = improved_question.choices[0].message.content
     # Display the response from the API.
     if st.session_state.improved_question:
