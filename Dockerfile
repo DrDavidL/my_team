@@ -1,7 +1,7 @@
 # app/Dockerfile
 
 # Use Python 3.9 slim image as the base image
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 # Set the working directory to /my_team within the container
 WORKDIR /my_team
@@ -16,6 +16,7 @@ RUN pip3 install -r requirements.txt
 # Copy your main application code and additional files such as prompts.py
 COPY main.py ./
 COPY prompts.py ./
+COPY markdown2.py ./
 
 # If there are other files or directories to include, add them here
 # COPY other_file.py ./
