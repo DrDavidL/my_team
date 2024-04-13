@@ -566,7 +566,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         improved_expander = True
         try:
             improved_question = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4-turbo",
                 messages=[
                     {"role": "system", "content": system_prompt_improve_question},
                     {"role": "user", "content": user_prompt}
@@ -632,11 +632,11 @@ if st.secrets["use_docker"] == "True" or check_password():
 
     with st.sidebar.expander("Click to View Model Options:", expanded=False):
         st.markdown("[Model Explanations](https://openrouter.ai/models)")
-        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-3-sonnet:beta", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
-        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo-preview", "anthropic/claude-3-sonnet:beta", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=4)
-        model3 = st.selectbox("Reonciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index = 1)
+        model1 = st.selectbox("Model 1 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo", "anthropic/claude-3-sonnet", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
+        model2 = st.selectbox("Model 2 Options", ("openai/gpt-3.5-turbo", "openai/gpt-4-turbo", "anthropic/claude-3-sonnet", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=2)
+        model3 = st.selectbox("Reconciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4-turbo"), index = 1)
         if use_rag:
-            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-4-turbo-preview"), index=0)
+            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-4-turbo"), index=0)
 
 
     if begin:
@@ -759,8 +759,8 @@ if st.secrets["use_docker"] == "True" or check_password():
             web_addition = ''       
 
         final_answer = reconcile(st.session_state.final_question, model3, f'A {model1} response was:\n\n{st.session_state.model1_response}', f'A {model2} response was:\n\n{st.session_state.model2_response}', f'Information from the web was:\n\n{web_addition}', updated_reconcile_prompt)
-        st.session_state.final_response = f'{st.session_state.final_question}\n\nFinal Response from {model3}\n\n{final_answer}'
-        st.markdown(final_answer)
+        st.session_state.final_response = f'Submitted Question: {st.session_state.final_question}  \n\nReconciled Response from {model3}\n\n{final_answer}'
+        # st.markdown(st.session_state.final_response)
         html = markdown2.markdown(final_answer, extras=["tables"])
         st.download_button('Download Reconciled Response', html, f'final_response.html', 'text/html')
     
@@ -806,9 +806,9 @@ if st.secrets["use_docker"] == "True" or check_password():
                     
 
                 
-
+    st.markdown(st.session_state.final_response)
     
-    if st.checkbox("Enter a follow-up question number or ask your own follow-up question. (Prior responses appear in the left sidebar.)"):
+    if st.checkbox("Enter a follow-up question number or ask your own follow-up question."):
     
         final_followup_prompt = f'{followup_system_prompt} Question was:\n\n{user_prompt} \n\n Answer was {st.session_state.final_response}'
     
