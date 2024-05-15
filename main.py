@@ -579,7 +579,7 @@ if st.secrets["use_docker"] == "True" or check_password():
         improved_expander = True
         try:
             improved_question = client.chat.completions.create(
-                model="gpt-4-turbo",
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": system_prompt_improve_question},
                     {"role": "user", "content": user_prompt}
@@ -646,10 +646,10 @@ if st.secrets["use_docker"] == "True" or check_password():
     with st.sidebar.expander("Click to View Model Options:", expanded=False):
         st.markdown("[Model Explanations](https://openrouter.ai/models)")
         model1 = st.selectbox("Model 1 Options", ('llama3-70b-8192', "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", "anthropic/claude-3-sonnet", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=0)
-        model2 = st.selectbox("Model 2 Options", ('llama3-70b-8192', "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", "anthropic/claude-3-sonnet", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=2)
-        model3 = st.selectbox("Reconciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4-turbo"), index = 1)
+        model2 = st.selectbox("Model 2 Options", ('llama3-70b-8192', "openai/gpt-3.5-turbo", "openai/gpt-4-turbo","anthropic/claude-3-haiku", "anthropic/claude-3-sonnet", "anthropic/claude-instant-v1", "google/gemini-pro", "mistralai/mixtral-8x7b-instruct", "google/palm-2-chat-bison-32k", "openchat/openchat-7b", "phind/phind-codellama-34b", "meta-llama/llama-2-70b-chat", "meta-llama/llama-2-13b-chat", "gryphe/mythomax-L2-13b", "nousresearch/nous-hermes-llama2-13b", "undi95/toppy-m-7b"), index=3)
+        model3 = st.selectbox("Reconciliation Model 3 Options", ("gpt-3.5-turbo", "gpt-4o", "gpt-4-turbo"), index = 1)
         if use_rag:
-            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-3.5-turbo", "gpt-4-turbo"), index=0)
+            model4 = st.selectbox("RAG Model Options: Only OpenAI models (ADA for embeddings)", ("gpt-4o","gpt-3.5-turbo", "gpt-4-turbo"), index=0)
 
 
     if begin:
